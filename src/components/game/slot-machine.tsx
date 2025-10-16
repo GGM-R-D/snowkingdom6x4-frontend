@@ -140,8 +140,17 @@ export function SlotMachine() {
     setSpinningReels(Array(NUM_REELS).fill(true));
 
     try {
-      // Call backend API - use direct service URL
-      const response = await fetch('http://localhost:5073/play', {
+      // Call backend API - use Aspire service reference or fallback to direct URL
+      let apiUrl = 'https://apiservice/play';
+
+      // Fallback to direct localhost URL if service reference doesn't work
+      // Check if we're running in Aspire environment
+      if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        // Try to find the actual API service port
+        apiUrl = 'http://localhost:62491/play'; // Replace with actual port from Aspire dashboard
+      }
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
