@@ -178,17 +178,8 @@ export function SlotMachine() {
     setSpinningReels(Array(NUM_REELS).fill(true));
 
     try {
-      // Call backend API - use Aspire service reference or fallback to direct URL
-      let apiUrl = 'https://apiservice/play';
-
-      // Fallback to direct localhost URL if service reference doesn't work
-      // Check if we're running in Aspire environment
-      if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-        // Try to find the actual API service port
-        apiUrl = 'http://localhost:62491/play'; // Replace with actual port from Aspire dashboard
-      }
-
-      const response = await fetch(apiUrl, {
+      // Call backend API - use the correct API service URL
+      const response = await fetch('https://localhost:63379/play', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -207,6 +198,9 @@ export function SlotMachine() {
 
       const data: PlayResponse = await response.json();
       console.log('API Response Data:', data);
+      console.log('Grid data:', data.game?.results?.grid);
+      console.log('Grid type:', typeof data.game?.results?.grid);
+      console.log('Grid length:', data.game?.results?.grid?.length);
 
       // Update state from backend response
       setBalance(data.player.balance);
@@ -215,6 +209,9 @@ export function SlotMachine() {
 
       const newGrid = data.game.results.grid;
       const newWinningLines = data.game.results.winningLines;
+
+      console.log('New grid:', newGrid);
+      console.log('New winning lines:', newWinningLines);
 
       setWinningLines(newWinningLines);
 
