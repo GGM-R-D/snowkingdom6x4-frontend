@@ -52,6 +52,44 @@ type PlayResponse = {
   freeSpins: number;
 };
 
+// Reel strips for spinning animation (from original game)
+const REEL_STRIPS: string[][] = [
+  // Reel 1 (34 symbols) - copied from original symbols.ts
+  [
+    'KING', 'CROWN', 'QUEEN_CARD', 'TEN', 'ACE', 'WOLF', 'STONE', 'QUEEN',
+    'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'LEOPARD', 'DRAGON', 'JACK',
+    'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'WOLF', 'STONE', 'TEN', 'JACK',
+    'QUEEN_CARD', 'KING', 'ACE', 'WILD', 'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'SCATTER'
+  ],
+  // Add other reels...
+  ['TEN', 'STONE', 'QUEEN', 'KING', 'ACE', 'WOLF', 'STONE', 'QUEEN_CARD',
+    'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'LEOPARD', 'DRAGON', 'CROWN',
+    'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'WOLF', 'JACK', 'TEN', 'JACK',
+    'QUEEN_CARD', 'KING', 'ACE', 'WILD', 'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'SCATTER'
+  ],
+  // Add remaining reels...
+  ['WILD', 'ACE', 'WOLF', 'STONE', 'ACE', 'QUEEN_CARD', 'STONE', 'QUEEN',
+    'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'LEOPARD', 'DRAGON', 'CROWN',
+    'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'WOLF', 'KING', 'TEN', 'JACK',
+    'QUEEN_CARD', 'KING', 'JACK', 'WILD', 'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'SCATTER'
+  ],
+  ['TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'WOLF', 'STONE', 'QUEEN',
+    'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'LEOPARD', 'DRAGON', 'CROWN',
+    'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'WOLF', 'STONE', 'TEN', 'JACK',
+    'QUEEN_CARD', 'KING', 'ACE', 'WILD', 'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'SCATTER'
+  ],
+  ['DRAGON', 'WILD', 'LEOPARD', 'JACK', 'ACE', 'WOLF', 'STONE', 'QUEEN',
+    'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'QUEEN_CARD', 'TEN', 'CROWN',
+    'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'WOLF', 'STONE', 'TEN', 'JACK',
+    'QUEEN_CARD', 'KING', 'ACE', 'KING', 'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'SCATTER'
+  ],
+  ['JACK', 'SCATTER', 'KING', 'QUEEN_CARD', 'ACE', 'WOLF', 'STONE', 'QUEEN',
+    'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'LEOPARD', 'DRAGON', 'CROWN',
+    'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'WOLF', 'STONE', 'TEN', 'JACK',
+    'QUEEN_CARD', 'KING', 'ACE', 'WILD', 'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'TEN'
+  ]
+];
+
 // Game constants (these could eventually come from the backend)
 const NUM_REELS = 6;
 const NUM_ROWS = 4;
@@ -183,17 +221,22 @@ export function SlotMachine() {
       // Animate reels stopping one by one
       for (let i = 0; i < NUM_REELS; i++) {
         await new Promise(resolve => setTimeout(resolve, 500 + i * 150));
+
+        // Update grid FIRST, then stop spinning animation
+        setGrid(prevGrid => {
+          const updatedGrid = [...prevGrid];
+          updatedGrid[i] = newGrid[i];
+          return updatedGrid;
+        });
+
+        // Small delay to ensure grid update completes
+        await new Promise(resolve => setTimeout(resolve, 50));
+
         playReelStopSound();
         setSpinningReels(prev => {
           const newSpinning = [...prev];
           newSpinning[i] = false;
           return newSpinning;
-        });
-
-        setGrid(prevGrid => {
-          const updatedGrid = [...prevGrid];
-          updatedGrid[i] = newGrid[i];
-          return updatedGrid;
         });
       }
 
@@ -249,10 +292,11 @@ export function SlotMachine() {
     }
   }, [freeSpinsRemaining, isSpinning, spin]);
 
-  // For spinning reels, show the initial strip (this could be improved)
+  // For spinning reels, show the reel strip for animation (matching original behavior)
   const getReelSymbols = (reelIndex: number) => {
     if (spinningReels[reelIndex]) {
-      return Array(NUM_ROWS).fill('TEN'); // Show placeholder during spin
+      // Return the full reel strip for spinning animation (original behavior)
+      return REEL_STRIPS[reelIndex];
     }
     return grid[reelIndex];
   };
