@@ -179,9 +179,8 @@ export function SlotMachine() {
 
     try {
       // Call backend API - use the correct API service URL
-      const response = await fetch('http://localhost:5047/play', {
+      const response = await fetch('http://localhost:5047/play', { // <-- UPDATE THIS URL FROM YOUR DASHBOARD
         method: 'POST',
-        credentials: 'include',  // Important for CORS with credentials
         headers: {
           'Content-Type': 'application/json',
         },
