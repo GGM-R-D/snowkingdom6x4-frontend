@@ -16,7 +16,10 @@ import { Button } from '@/components/ui/button';
 import { Volume2, VolumeX } from 'lucide-react';
 
 // Types for API communication
-type SymbolId = string;
+type SymbolId = 
+  | 'TEN' | 'JACK' | 'QUEEN' | 'KING' | 'ACE' 
+  | 'WOLF' | 'STONE' | 'LEOPARD' | 'DRAGON' 
+  | 'CROWN' | 'QUEEN_CARD' | 'WILD' | 'SCATTER';
 type WinningLine = {
   paylineIndex: number;
   symbol: SymbolId;
@@ -53,41 +56,44 @@ type PlayResponse = {
 };
 
 // Reel strips for spinning animation (from original game)
-const REEL_STRIPS: string[][] = [
+const REEL_STRIPS: SymbolId[][] = [
   // Reel 1 (34 symbols) - copied from original symbols.ts
   [
     'KING', 'CROWN', 'QUEEN_CARD', 'TEN', 'ACE', 'WOLF', 'STONE', 'QUEEN',
     'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'LEOPARD', 'DRAGON', 'JACK',
     'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'WOLF', 'STONE', 'TEN', 'JACK',
     'QUEEN_CARD', 'KING', 'ACE', 'WILD', 'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'SCATTER'
-  ],
-  // Add other reels...
+  ] as SymbolId[],
+  // Reel 2
   ['TEN', 'STONE', 'QUEEN', 'KING', 'ACE', 'WOLF', 'STONE', 'QUEEN_CARD',
     'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'LEOPARD', 'DRAGON', 'CROWN',
     'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'WOLF', 'JACK', 'TEN', 'JACK',
     'QUEEN_CARD', 'KING', 'ACE', 'WILD', 'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'SCATTER'
-  ],
-  // Add remaining reels...
+  ] as SymbolId[],
+  // Reel 3
   ['WILD', 'ACE', 'WOLF', 'STONE', 'ACE', 'QUEEN_CARD', 'STONE', 'QUEEN',
     'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'LEOPARD', 'DRAGON', 'CROWN',
     'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'WOLF', 'KING', 'TEN', 'JACK',
     'QUEEN_CARD', 'KING', 'JACK', 'WILD', 'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'SCATTER'
-  ],
+  ] as SymbolId[],
+  // Reel 4
   ['TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'WOLF', 'STONE', 'QUEEN',
     'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'LEOPARD', 'DRAGON', 'CROWN',
     'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'WOLF', 'STONE', 'TEN', 'JACK',
     'QUEEN_CARD', 'KING', 'ACE', 'WILD', 'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'SCATTER'
-  ],
+  ] as SymbolId[],
+  // Reel 5
   ['DRAGON', 'WILD', 'LEOPARD', 'JACK', 'ACE', 'WOLF', 'STONE', 'QUEEN',
     'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'QUEEN_CARD', 'TEN', 'CROWN',
     'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'WOLF', 'STONE', 'TEN', 'JACK',
     'QUEEN_CARD', 'KING', 'ACE', 'KING', 'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'SCATTER'
-  ],
+  ] as SymbolId[],
+  // Reel 6
   ['JACK', 'SCATTER', 'KING', 'QUEEN_CARD', 'ACE', 'WOLF', 'STONE', 'QUEEN',
     'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'LEOPARD', 'DRAGON', 'CROWN',
     'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'ACE', 'WOLF', 'STONE', 'TEN', 'JACK',
     'QUEEN_CARD', 'KING', 'ACE', 'WILD', 'TEN', 'JACK', 'QUEEN_CARD', 'KING', 'TEN'
-  ]
+  ] as SymbolId[]
 ];
 
 // Game constants (these could eventually come from the backend)
