@@ -155,131 +155,129 @@ export function SlotMachine() {
     setBetAmount(BET_AMOUNTS[nextIndex]);
   };
 
-  const spin = useCallback(async () => {
-    if (isSpinning) return;
+      const spin = useCallback(async () => {
+          if (isSpinning) return;
 
-    // Check balance on frontend for quick response
-    if (balance < betAmount && freeSpinsRemaining === 0) {
-      toast({
-        variant: "destructive",
-        title: "Insufficient Balance",
-        description: "You don't have enough balance to place that bet.",
-      });
-      return;
-    }
+          // Check balance on frontend for quick response
+          if (balance < betAmount && freeSpinsRemaining === 0) {
+              toast({
+                  variant: "destructive",
+                  title: "Insufficient Balance",
+                  description: "You don't have enough balance to place that bet.",
+              });
+              return;
+          }
 
-    stopSpinSound();
-    playSpinSound();
+          stopSpinSound();
+          playSpinSound();
 
-    // Start spinning animation
-    setLastWin(0);
-    setWinningLines([]);
-    setWinningFeedback(null);
-    setSpinningReels(Array(NUM_REELS).fill(true));
+          // Start spinning animation
+          setLastWin(0);
+          setWinningLines([]);
+          setWinningFeedback(null);
+          setSpinningReels(Array(NUM_REELS).fill(true));
 
-    try {
-      // Call backend API - use the correct API service URL
-      const response = await fetch('http://localhost:5047/play', { // <-- UPDATE THIS URL FROM YOUR DASHBOARD
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sessionId: sessionId,
-          betAmount: betAmount,
-        }),
-      });
+          try {
+              // Call backend API
+              const response = await fetch('http://localhost:5047/play', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                      sessionId: sessionId,
+                      betAmount: betAmount,
+                  }),
+              });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('API Error Response:', errorData);
-        throw new Error(errorData.Error || `HTTP error! status: ${response.status}`);
-      }
+              if (!response.ok) {
+                  const errorData = await response.json().catch(() => ({}));
+                  console.error('API Error Response:', errorData);
+                  throw new Error(errorData.Error || `HTTP error! status: ${response.status}`);
+              }
 
-      const data: PlayResponse = await response.json();
-      console.log('API Response Data:', data);
-      console.log('Grid data:', data.game?.results?.grid);
-      console.log('Grid type:', typeof data.game?.results?.grid);
-      console.log('Grid length:', data.game?.results?.grid?.length);
+              const data: PlayResponse = await response.json();
+              
+              // Update state from backend response
+              setBalance(data.player.balance);
+              setFreeSpinsRemaining(data.player.freeSpinsRemaining);
+              setLastWin(data.player.lastWin);
 
-      // Update state from backend response
-      setBalance(data.player.balance);
-      setFreeSpinsRemaining(data.player.freeSpinsRemaining);
-      setLastWin(data.player.lastWin);
+              const newGrid = data.game.results.grid;
+              const newWinningLines = data.game.results.winningLines;
 
-      const newGrid = data.game.results.grid;
-      const newWinningLines = data.game.results.winningLines;
+              // DO NOT set winning lines here. We will do it after the reels stop.
+              // setWinningLines(newWinningLines); // <-- This was the problem line
 
-      console.log('New grid:', newGrid);
-      console.log('New winning lines:', newWinningLines);
+              // Animate reels stopping one by one
+              for (let i = 0; i < NUM_REELS; i++) {
+                  await new Promise(resolve => setTimeout(resolve, 250 + i * 50));
 
-      setWinningLines(newWinningLines);
+                  // Update grid FIRST, then stop spinning animation
+                  setGrid(prevGrid => {
+                      const updatedGrid = [...prevGrid];
+                      updatedGrid[i] = newGrid[i];
+                      return updatedGrid;
+                  });
 
-      // Animate reels stopping one by one
-      for (let i = 0; i < NUM_REELS; i++) {
-        await new Promise(resolve => setTimeout(resolve, 500 + i * 150));
+                  // Small delay to ensure grid update completes
+                  await new Promise(resolve => setTimeout(resolve, 50));
 
-        // Update grid FIRST, then stop spinning animation
-        setGrid(prevGrid => {
-          const updatedGrid = [...prevGrid];
-          updatedGrid[i] = newGrid[i];
-          return updatedGrid;
-        });
+                  playReelStopSound();
+                  setSpinningReels(prev => {
+                      const newSpinning = [...prev];
+                      newSpinning[i] = false;
+                      return newSpinning;
+                  });
+              }
 
-        // Small delay to ensure grid update completes
-        await new Promise(resolve => setTimeout(resolve, 50));
+              // *** FIX APPLIED HERE ***
+              // Now that all reels have visually stopped, we can reveal the winning lines.
+              // This is the perfect time to trigger the animations.
+              stopSpinSound();
+              setWinningLines(newWinningLines);
 
-        playReelStopSound();
-        setSpinningReels(prev => {
-          const newSpinning = [...prev];
-          newSpinning[i] = false;
-          return newSpinning;
-        });
-      }
+              await new Promise(resolve => setTimeout(resolve, 100));
 
-      stopSpinSound();
-      await new Promise(resolve => setTimeout(resolve, 100));
+              // Handle free spins trigger
+              if (data.game.results.scatterWin.triggeredFreeSpins) {
+                  playFreeSpinsTriggerSound();
+                  toast({
+                      title: "Free Spins Triggered!",
+                      description: `You won ${FREE_SPINS_AWARDED} free spins!`,
+                      duration: 5000,
+                  });
+              }
 
-      // Handle free spins trigger
-      if (data.game.results.scatterWin.triggeredFreeSpins) {
-        playFreeSpinsTriggerSound();
-        toast({
-          title: "Free Spins Triggered!",
-          description: `You won ${FREE_SPINS_AWARDED} free spins!`,
-          duration: 5000,
-        });
-      }
+              // Handle wins (This logic is already in the correct place)
+              if (data.player.lastWin > 0) {
+                  if (data.player.lastWin > betAmount * 5) {
+                      playBigWinSound();
+                  } else {
+                      playWinSound();
+                  }
 
-      // Handle wins
-      if (data.player.lastWin > 0) {
-        if (data.player.lastWin > betAmount * 10) {
-          playBigWinSound();
-        } else {
-          playWinSound();
-        }
+                  // Get winning feedback for win animation
+                  const winningSymbols = [...new Set(newWinningLines.map(l => l.symbol))];
+                  const feedback = await getWinningFeedback({
+                      winAmount: data.player.lastWin,
+                      winningSymbols: winningSymbols,
+                      betAmount: betAmount
+                  });
+                  setWinningFeedback(feedback);
+              }
 
-        // Get winning feedback for win animation
-        const winningSymbols = [...new Set(newWinningLines.map(l => l.symbol))];
-        const feedback = await getWinningFeedback({
-          winAmount: data.player.lastWin,
-          winningSymbols: winningSymbols,
-          betAmount: betAmount
-        });
-        setWinningFeedback(feedback);
-      }
-
-    } catch (error) {
-      console.error("Failed to fetch spin result:", error);
-      toast({
-        variant: "destructive",
-        title: "Connection Error",
-        description: error instanceof Error ? error.message : "Failed to connect to game server",
-      });
-      setSpinningReels(Array(NUM_REELS).fill(false));
-      stopSpinSound();
-    }
-  }, [isSpinning, balance, betAmount, freeSpinsRemaining, toast, playSpinSound, stopSpinSound, playReelStopSound, playWinSound, playBigWinSound, playFreeSpinsTriggerSound, sessionId]);
-
+          } catch (error) {
+              console.error("Failed to fetch spin result:", error);
+              toast({
+                  variant: "destructive",
+                  title: "Connection Error",
+                  description: error instanceof Error ? error.message : "Failed to connect to game server",
+              });
+              setSpinningReels(Array(NUM_REELS).fill(false));
+              stopSpinSound();
+          }
+      }, [isSpinning, balance, betAmount, freeSpinsRemaining, toast, playSpinSound, stopSpinSound, playReelStopSound, playWinSound, playBigWinSound, playFreeSpinsTriggerSound, sessionId]);
   useEffect(() => {
     if (freeSpinsRemaining > 0 && !isSpinning) {
       const timer = setTimeout(() => {
