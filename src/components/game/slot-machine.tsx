@@ -102,12 +102,28 @@ const NUM_ROWS = 4;
 const BET_AMOUNTS = [1, 2, 3, 5];
 const FREE_SPINS_AWARDED = 10;
 
+
 // Generate initial grid (for visual purposes only)
 const generateInitialGrid = (): SymbolId[][] =>
   Array(NUM_REELS).fill(null).map(() => Array(NUM_ROWS).fill('TEN'));
 
 export function SlotMachine() {
   const [grid, setGrid] = useState<SymbolId[][]>(generateInitialGrid);
+  useEffect(() => {
+    // Now we can safely randomize the grid on the client
+    setGrid(
+      Array(NUM_REELS)
+        .fill(null)
+        .map((_, reelIndex) =>
+          Array(NUM_ROWS)
+            .fill(null)
+            .map(() => {
+              const reelStrip = REEL_STRIPS[reelIndex];
+              return reelStrip[Math.floor(Math.random() * reelStrip.length)];
+            })
+        )
+    );
+  }, []);
   const [spinningReels, setSpinningReels] = useState<boolean[]>(Array(NUM_REELS).fill(false));
   const [balance, setBalance] = useState(1000);
   const [betAmount, setBetAmount] = useState(BET_AMOUNTS[0]);
@@ -138,6 +154,7 @@ export function SlotMachine() {
   const [playWinSound] = useSound(SOUNDS.win, soundConfig);
   const [playBigWinSound] = useSound(SOUNDS.bigWin, soundConfig);
   const [playFreeSpinsTriggerSound] = useSound(SOUNDS.featureTrigger, soundConfig);
+  
 
   useEffect(() => {
     if (!isMuted) {

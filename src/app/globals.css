@@ -79,6 +79,17 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground relative min-h-screen;
+    background-image: url('/images/backround/backround.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+
+  /* Ensure content is above the background */
+  #__next {
+    position: relative;
+    z-index: 1;
   }
 }
