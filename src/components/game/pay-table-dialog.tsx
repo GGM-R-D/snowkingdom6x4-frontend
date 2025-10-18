@@ -49,9 +49,7 @@ export function PayTableDialog() {
                       <TableHead className="px-2 py-2 text-xs sm:text-sm font-medium text-muted-foreground text-center">
                         3x
                       </TableHead>
-                      <TableHead className="px-2 py-2 text-xs sm:text-sm font-medium text-muted-foreground text-center">
-                        2x
-                      </TableHead>
+                      
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-muted-foreground/10">
@@ -65,7 +63,7 @@ export function PayTableDialog() {
                             <span className="text-sm font-medium">{symbol.name}</span>
                           </div>
                         </TableCell>
-                        {[6, 5, 4, 3, 2].map((multiplier) => (
+                        {[6, 5, 4, 3,].map((multiplier) => (
                           <TableCell 
                             key={`${symbol.id}-${multiplier}`}
                             className="px-2 py-3 text-sm text-center"

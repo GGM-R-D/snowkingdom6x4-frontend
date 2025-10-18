@@ -39,91 +39,91 @@ export const SYMBOLS: Record<SymbolId, SymbolConfig> = {
   WILD: { 
     id: 'WILD', 
     name: 'Wild', 
-    payout: { 2: 5, 3: 20, 4: 100, 5: 500, 6: 2000 },
+    payout: { '3': 100, '4': 300, '5': 1000, '6': 3000 },
     icon: WildIcon,
     color: '#f59e0b' // amber-500
   },
   SCATTER: { 
     id: 'SCATTER', 
     name: 'Scatter', 
-    payout: { 3: 5, 4: 30, 5: 150, 6: 1000 },
+    payout: { '3': 2, '4': 10, '5': 250, '6': 500 },
     icon: ScatterIcon,
     color: '#10b981' // emerald-500
   },
   CROWN: { 
     id: 'CROWN', 
     name: 'Crown', 
-    payout: { 3: 1.5, 4: 15, 5: 75, 6: 300 },
+    payout: { '3': 40, '4': 100, '5': 250, '6': 800 },
     icon: CrownIcon,
     color: '#f59e0b' // amber-500
   },
   DRAGON: { 
     id: 'DRAGON', 
     name: 'Dragon', 
-    payout: { 3: 1.2, 4: 12, 5: 60, 6: 250 },
+    payout: { '3': 20, '4': 40, '5': 200, '6': 400 },
     icon: DiamondIcon,
     color: '#ef4444' // red-500
   },
   LEOPARD: { 
     id: 'LEOPARD', 
     name: 'Leopard', 
-    payout: { 3: 1, 4: 10, 5: 50, 6: 200 },
+    payout: { '3': 20, '4': 40, '5': 200, '6': 400 },
     icon: LightningIcon,
     color: '#f97316' // orange-500
   },
   QUEEN: { 
     id: 'QUEEN', 
     name: 'Queen', 
-    payout: { 3: 0.8, 4: 8, 5: 40, 6: 150 },
+    payout: { '3': 10, '4': 20, '5': 70, '6': 140 },
     icon: StarIcon,
     color: '#8b5cf6' // violet-500
   },
   STONE: { 
     id: 'STONE', 
     name: 'Stone', 
-    payout: { 3: 0.6, 4: 6, 5: 30, 6: 120 },
+    payout: { '3': 5, '4': 20, '5': 60, '6': 100 },
     icon: AlertIcon,
     color: '#6b7280' // gray-500
   },
   WOLF: { 
     id: 'WOLF', 
     name: 'Wolf', 
-    payout: { 3: 0.5, 4: 5, 5: 25, 6: 100 },
+    payout: { '3': 5, '4': 20, '5': 60, '6': 100 },
     icon: HeartIcon,
     color: '#ec4899' // pink-500
   },
   ACE: { 
     id: 'ACE', 
     name: 'Ace', 
-    payout: { 3: 0.4, 4: 4, 5: 20, 6: 80 },
+    payout: { '3': 2, '4': 5, '5': 20, '6': 40 },
     icon: SparklesIcon,
     color: '#3b82f6' // blue-500
   },
   JACK: { 
     id: 'JACK', 
     name: 'Jack', 
-    payout: { 3: 0.3, 4: 3, 5: 15, 6: 60 },
+    payout: { '3': 2, '4': 5, '5': 20, '6': 40 },
     icon: AwardIcon,
     color: '#10b981' // emerald-500
   },
   QUEEN_CARD: { 
     id: 'QUEEN_CARD', 
     name: 'Queen Card', 
-    payout: { 3: 0.2, 4: 2, 5: 10, 6: 40 },
+    payout: { '3': 2, '4': 5, '5': 20, '6': 40 },
     icon: StarIcon,
     color: '#8b5cf6' // violet-500
   },
   KING: { 
     id: 'KING', 
     name: 'King', 
-    payout: { 3: 0.1, 4: 1, 5: 5, 6: 20 },
+    payout: { '3': 2, '4': 5, '5': 20, '6': 40 },
     icon: CrownIcon,
     color: '#f59e0b' // amber-500
   },
   TEN: { 
     id: 'TEN', 
     name: 'Ten', 
-    payout: { 3: 0.05, 4: 0.5, 5: 2.5, 6: 10 },
+    payout: { '3': 2, '4': 5, '5': 20, '6': 40 },
     icon: CoinsIcon,
     color: '#d1d5db' // gray-300
   },
