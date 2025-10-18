@@ -178,6 +178,13 @@ export function SlotMachine() {
     setBetAmount(BET_AMOUNTS[nextIndex]);
   };
 
+  const handleDecreaseBet = () => {
+  if (isFreeSpinsMode) return;
+  const currentIndex = BET_AMOUNTS.indexOf(betAmount);
+  const prevIndex = currentIndex > 0 ? currentIndex - 1 : BET_AMOUNTS.length - 1;
+  setBetAmount(BET_AMOUNTS[prevIndex]);
+};
+
       const spin = useCallback(async () => {
           if (isSpinning) return;
 
@@ -356,7 +363,7 @@ export function SlotMachine() {
         </Button>
       </div>
       <h1 className="text-3xl sm:text-4xl md:text-6xl font-headline text-accent tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
-        Snow Kingdom
+        FROSTY FORTUNES
       </h1>
 
       <div className="relative w-full flex justify-center">
@@ -383,6 +390,7 @@ export function SlotMachine() {
         isSpinning={isSpinning}
         onSpin={spin}
         onIncreaseBet={handleIncreaseBet}
+        onDecreaseBet={handleDecreaseBet}
         freeSpinsRemaining={freeSpinsRemaining}
         isFreeSpinsMode={isFreeSpinsMode}
       />
