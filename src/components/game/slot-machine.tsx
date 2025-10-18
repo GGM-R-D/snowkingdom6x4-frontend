@@ -198,10 +198,7 @@ export function SlotMachine() {
 
               const data: PlayResponse = await response.json();
               
-              // Update state from backend response
-              setBalance(data.player.balance);
-              setFreeSpinsRemaining(data.player.freeSpinsRemaining);
-              setLastWin(data.player.lastWin);
+             
 
               const newGrid = data.game.results.grid;
               const newWinningLines = data.game.results.winningLines;
@@ -236,6 +233,11 @@ export function SlotMachine() {
               // This is the perfect time to trigger the animations.
               stopSpinSound();
               setWinningLines(newWinningLines);
+              
+               // Update state from backend response
+              setBalance(data.player.balance);
+              setFreeSpinsRemaining(data.player.freeSpinsRemaining);
+              setLastWin(data.player.lastWin);
 
               await new Promise(resolve => setTimeout(resolve, 100));
 
