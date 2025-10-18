@@ -31,7 +31,7 @@ export const SYMBOLS: Record<SymbolId, SymbolConfig> = {
   SCATTER: { 
     id: 'SCATTER', 
     name: 'Scatter', 
-    payout: { '3': 2, '4': 10, '5': 250, '6': 500 },
+    payout: { '3': 5, '4': 10, '5': 250, '6': 500 },
     image: '/images/symbols/Scatter.png' 
   },
   CROWN: { 
