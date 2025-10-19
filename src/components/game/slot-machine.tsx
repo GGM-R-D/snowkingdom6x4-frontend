@@ -154,6 +154,7 @@ export function SlotMachine() {
   const [playWinSound] = useSound(SOUNDS.win, soundConfig);
   const [playBigWinSound] = useSound(SOUNDS.bigWin, soundConfig);
   const [playFreeSpinsTriggerSound] = useSound(SOUNDS.featureTrigger, soundConfig);
+  const [playClickSound] = useSound(SOUNDS.click, soundConfig);
   
 
   useEffect(() => {
@@ -173,17 +174,19 @@ export function SlotMachine() {
 
   const handleIncreaseBet = () => {
     if (isFreeSpinsMode) return;
+    playClickSound();
     const currentIndex = BET_AMOUNTS.indexOf(betAmount);
     const nextIndex = (currentIndex + 1) % BET_AMOUNTS.length;
     setBetAmount(BET_AMOUNTS[nextIndex]);
   };
 
   const handleDecreaseBet = () => {
-  if (isFreeSpinsMode) return;
-  const currentIndex = BET_AMOUNTS.indexOf(betAmount);
-  const prevIndex = currentIndex > 0 ? currentIndex - 1 : BET_AMOUNTS.length - 1;
-  setBetAmount(BET_AMOUNTS[prevIndex]);
-};
+    if (isFreeSpinsMode) return;
+    playClickSound();
+    const currentIndex = BET_AMOUNTS.indexOf(betAmount);
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : BET_AMOUNTS.length - 1;
+    setBetAmount(BET_AMOUNTS[prevIndex]);
+  };
 
       const spin = useCallback(async () => {
           if (isSpinning) return;
@@ -228,7 +231,7 @@ export function SlotMachine() {
 
               const data: PlayResponse = await response.json();
               
-             
+              
 
               const newGrid = data.game.results.grid;
               const newWinningLines = data.game.results.winningLines;
@@ -264,7 +267,7 @@ export function SlotMachine() {
               stopSpinSound();
               setWinningLines(newWinningLines);
               
-               // Update state from backend response
+                // Update state from backend response
               setBalance(data.player.balance);
               setFreeSpinsRemaining(data.player.freeSpinsRemaining);
               setLastWin(data.player.lastWin);
@@ -367,7 +370,7 @@ export function SlotMachine() {
       </h1>
 
       <div className="relative w-full flex justify-center">
-        <div className="grid grid-cols-6 gap-2 p-2 bg-black/30 rounded-lg">
+        <div className="grid grid-cols-6 gap-2 p-2 bg-black/30 rounded-lg relative">
           {Array.from({ length: NUM_REELS }).map((_, i) => (
             <ReelColumn
               key={i}
@@ -379,8 +382,8 @@ export function SlotMachine() {
               }
             />
           ))}
+          {!isSpinning && winningLines.length > 0 && <WinningLinesDisplay winningLines={winningLines.filter(l => l.paylineIndex !== -1)} />}
         </div>
-        {!isSpinning && winningLines.length > 0 && <WinningLinesDisplay winningLines={winningLines.filter(l => l.paylineIndex !== -1)} />}
       </div>
 
       <ControlPanel
@@ -407,3 +410,4 @@ export function SlotMachine() {
     </div>
   );
 }
+
