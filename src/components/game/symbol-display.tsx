@@ -1,6 +1,8 @@
-import { memo } from 'react';
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { SYMBOLS, type SymbolId } from '@/lib/slot-config';
+import { SYMBOLS, type SymbolId } from '@/lib/symbols'; // Corrected import path
 import { cn } from '@/lib/utils';
 import { PAYLINE_COLORS } from './winning-lines-display';
 
@@ -10,14 +12,31 @@ interface SymbolDisplayProps {
   winningLineIndices?: number[];
 }
 
-export const SymbolDisplay = memo(({ symbolId, className, winningLineIndices = [] }: SymbolDisplayProps) => {
+export function SymbolDisplay({ symbolId, className, winningLineIndices = [] }: SymbolDisplayProps) {
   const symbol = SYMBOLS[symbolId];
-  if (!symbol) return null; // Return null if symbol is not found
+  const videoRef = useRef<HTMLVideoElement>(null);
   
-  const { image } = symbol;
   const isWinning = winningLineIndices.length > 0;
   
-  // Use a different color for winning highlights
+  useEffect(() => {
+    // When the symbol becomes winning, play the video from the beginning
+    if (isWinning && videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(error => {
+        // Autoplay can sometimes be blocked by the browser, log error if it happens
+        console.error("Video play failed:", error);
+      });
+    }
+  }, [isWinning]);
+
+  if (!symbol) {
+    return null;
+  }
+  
+  // Conditionally render the video if the symbol is winning AND has a video defined
+  const shouldPlayVideo = isWinning && symbol.video;
+
+  // Determine border color for winning symbols
   const borderColor = isWinning 
     ? PAYLINE_COLORS[winningLineIndices[0] % PAYLINE_COLORS.length] 
     : undefined;
@@ -26,7 +45,10 @@ export const SymbolDisplay = memo(({ symbolId, className, winningLineIndices = [
     <div
       className={cn(
         'aspect-square w-full h-full flex items-center justify-center bg-black/30 rounded-lg p-2 transition-all duration-300 relative overflow-hidden',
-        isWinning && 'border-2 animate-pulse-win',
+        // Apply border and shadow styles directly
+        isWinning && 'border-2',
+        // Use the fallback pulse animation ONLY if a video isn't playing
+        isWinning && !shouldPlayVideo && 'animate-pulse-win',
         className
       )}
       style={{
@@ -34,13 +56,29 @@ export const SymbolDisplay = memo(({ symbolId, className, winningLineIndices = [
         boxShadow: isWinning ? `0 0 10px ${borderColor}` : undefined
       }}
     >
-      {image ? (
+      {/* The video element - rendered only when it should play */}
+      {shouldPlayVideo && (
+        <video
+          ref={videoRef}
+          src={symbol.video}
+          muted     // Muted is crucial for autoplay
+          playsInline // Important for iOS
+          className="absolute top-0 left-0 w-full h-full object-cover z-10"
+        />
+      )}
+
+      {/* The static image - always present */}
+      {symbol.image ? (
         <Image 
-          src={image} 
+          src={symbol.image} 
           alt={symbolId.toLowerCase()} 
           fill
-          className="object-cover drop-shadow-lg"
-          unoptimized={process.env.NODE_ENV !== 'production'} // Only optimize in production
+          className={cn(
+            "object-cover drop-shadow-lg transition-opacity duration-300",
+            // If a video is playing, the image is hidden; otherwise, it's visible.
+            shouldPlayVideo ? 'opacity-0' : 'opacity-100'
+          )}
+          unoptimized={process.env.NODE_ENV !== 'production'}
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center text-white">
@@ -49,6 +87,6 @@ export const SymbolDisplay = memo(({ symbolId, className, winningLineIndices = [
       )}
     </div>
   );
-});
+}
 
 SymbolDisplay.displayName = 'SymbolDisplay';
