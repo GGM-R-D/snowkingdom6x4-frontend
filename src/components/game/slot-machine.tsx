@@ -155,16 +155,36 @@ export function SlotMachine() {
   const [playBigWinSound] = useSound(SOUNDS.bigWin, soundConfig);
   const [playFreeSpinsTriggerSound] = useSound(SOUNDS.featureTrigger, soundConfig);
   const [playClickSound] = useSound(SOUNDS.click, soundConfig);
+  const [playFreeSpinsMusic, { stop: stopFreeSpinsMusic }] = useSound(SOUNDS.freeSpinsMusic, {
+    ...soundConfig,
+    loop: true
+  });
   
 
-  useEffect(() => {
-    if (!isMuted) {
+ useEffect(() => {
+    // If the game is muted, make sure no music is playing.
+    if (isMuted) {
+      stopBgMusic();
+      stopFreeSpinsMusic();
+      return;
+    }
+
+    // If in free spins mode, play the free spins music.
+    // Otherwise, play the normal background music.
+    if (isFreeSpinsMode) {
+      stopBgMusic();
+      playFreeSpinsMusic();
+    } else {
+      stopFreeSpinsMusic();
       playBgMusic();
     }
+
+    // Cleanup function to stop all music when the component is no longer on screen.
     return () => {
       stopBgMusic();
+      stopFreeSpinsMusic();
     };
-  }, [playBgMusic, stopBgMusic, isMuted]);
+  }, [isFreeSpinsMode, isMuted, playBgMusic, stopBgMusic, playFreeSpinsMusic, stopFreeSpinsMusic]);
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
@@ -210,19 +230,19 @@ export function SlotMachine() {
           setWinningFeedback(null);
 
           // Asynchronously start reels one by one to ensure staggering
-          const startReelsSequentially = async () => {
-            for (let i = 0; i < NUM_REELS; i++) {
-              setSpinningReels(prev => {
-                const newSpinning = [...prev];
-                newSpinning[i] = true;
-                return newSpinning;
-              });
-              await new Promise(resolve => setTimeout(resolve, 50));
-            }
-          };
+          const startReelsSequentially = async () => {
+          for (let i = 0; i < NUM_REELS; i++) {
+          setSpinningReels(prev => {
+          const newSpinning = [...prev];
+          newSpinning[i] = true;
+         return newSpinning;
+           });
+         await new Promise(resolve => setTimeout(resolve, 50));
+          }
+      };
 
-          // Start the reel animation without waiting for it to finish
-          startReelsSequentially();
+           // Start the reel animation without waiting for it to finish
+           startReelsSequentially();
 
           try {
               // Call backend API

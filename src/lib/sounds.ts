@@ -9,5 +9,6 @@ export const SOUNDS = {
   win: '/sounds/win.wav',                     // Standard win sound
   bigWin: '/sounds/big-win.wav',              // Exciting sound for a big win
   click: '/sounds/click.wav',                 // For UI button clicks
-  featureTrigger: '/sounds/feature-trigger.wav' // Sound for triggering a bonus feature
+  featureTrigger: '/sounds/feature-trigger.wav' ,// Sound for triggering a bonus feature
+  freeSpinsMusic: '/sounds/free-spins-music.wav',//free spins background music
 };
