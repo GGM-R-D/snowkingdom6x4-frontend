@@ -209,16 +209,20 @@ export function SlotMachine() {
           setWinningLines([]);
           setWinningFeedback(null);
 
-          // Stagger the start of each reel's spin
-          for (let i = 0; i < NUM_REELS; i++) {
-            setTimeout(() => {
-              setSpinningReels(prev => {
-                const newSpinning = [...prev];
-                newSpinning[i] = true;
-                return newSpinning;
-              });
-            }, i * 50); // 500ms delay between each reel
-          }
+          // Asynchronously start reels one by one to ensure staggering
+          const startReelsSequentially = async () => {
+            for (let i = 0; i < NUM_REELS; i++) {
+              setSpinningReels(prev => {
+                const newSpinning = [...prev];
+                newSpinning[i] = true;
+                return newSpinning;
+              });
+              await new Promise(resolve => setTimeout(resolve, 50));
+            }
+          };
+
+          // Start the reel animation without waiting for it to finish
+          startReelsSequentially();
 
           try {
               // Call backend API
