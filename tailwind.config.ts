@@ -89,8 +89,8 @@ export default {
           },
         },
         'reel-spin': {
-          '0%': { transform: 'translateY(0%)' },
-          '100%': { transform: 'translateY(-100%)' },
+          '0%': { transform: 'translateY(-50%)' },
+          '100%': { transform: 'translateY(0%)' },
         },
         'reel-bounce': {
           '0%': { transform: 'translateY(0)' },

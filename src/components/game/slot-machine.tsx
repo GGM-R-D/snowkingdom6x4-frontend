@@ -208,7 +208,17 @@ export function SlotMachine() {
           setLastWin(0);
           setWinningLines([]);
           setWinningFeedback(null);
-          setSpinningReels(Array(NUM_REELS).fill(true));
+
+          // Stagger the start of each reel's spin
+          for (let i = 0; i < NUM_REELS; i++) {
+            setTimeout(() => {
+              setSpinningReels(prev => {
+                const newSpinning = [...prev];
+                newSpinning[i] = true;
+                return newSpinning;
+              });
+            }, i * 50); // 500ms delay between each reel
+          }
 
           try {
               // Call backend API

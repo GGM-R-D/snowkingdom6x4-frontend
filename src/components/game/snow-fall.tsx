@@ -3,7 +3,7 @@ import React from 'react';
 const Snowfall = () => {
   // Create an array of numbers to map over for snowflakes
   // Adjust the number (e.g., 150) to increase or decrease snow density
-  const snowflakes = Array.from({ length: 150 });
+  const snowflakes = Array.from({ length: 750 });
 
   return (
     <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">

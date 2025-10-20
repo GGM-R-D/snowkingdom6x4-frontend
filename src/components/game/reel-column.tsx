@@ -28,7 +28,8 @@ export function ReelColumn({ symbols, isSpinning, reelIndex, winningLineIndicesF
     // By duplicating the reel strip, we create a seamless loop for the animation.
     const displaySymbols = isSpinning ? [...reelStrip, ...reelStrip, ...reelStrip.slice(0, NUM_ROWS)] : symbols;
     
-    const containerHeightClass = 'h-[220px] sm:h-[352px] md:h-[592px]';
+    // increased the height at each breakpoint to create more space at the bottom.
+    const containerHeightClass = 'h-[228px] sm:h-[360px] md:h-[600px]';
 
     return (
         <div className={cn("overflow-hidden", containerHeightClass)}>
@@ -39,7 +40,7 @@ export function ReelColumn({ symbols, isSpinning, reelIndex, winningLineIndicesF
                     isStopping && 'animate-reel-bounce'
                 )}
                 style={{
-                    animationDuration: isSpinning ? `0.2s` : undefined
+                    animationDuration: isSpinning ? `3s` : undefined
                 } as React.CSSProperties}
             >
                 {displaySymbols.slice(0, isSpinning ? reelStrip.length * 2 : NUM_ROWS).map((symbolId, i) => (
