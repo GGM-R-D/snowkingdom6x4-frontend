@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PayTableDialog } from "./pay-table-dialog";
 import { Plus, Minus, RotateCw } from "lucide-react";
-import { useMemo } from 'react'; // Make sure useMemo is imported
+import { useMemo } from 'react';
 
 interface ControlPanelProps {
   betAmount: number;
@@ -18,9 +18,9 @@ interface ControlPanelProps {
 }
 
 const InfoDisplay = ({ label, value, isCurrency = true }: { label: string; value: number | string; isCurrency?: boolean }) => (
-    <div className="flex flex-col items-center justify-center p-1 rounded-lg bg-black/30 w-full text-center min-h-[48px] sm:min-h-[60px] md:min-h-[80px]">
-        <span className="text-[9px] sm:text-[10px] md:text-xs uppercase text-accent/80 font-bold tracking-widest drop-shadow-lg">{label}</span>
-        <span className="text-xs sm:text-base md:text-2xl font-bold text-white font-headline drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+    <div className="flex flex-col items-center justify-center p-1 rounded-md bg-black/50 w-full text-center shadow-inner shadow-black min-h-[48px] sm:min-h-[60px] md:min-h-[80px]">
+        <span className="text-[9px] sm:text-[10px] md:text-xs uppercase text-cyan-300/70 font-mono tracking-widest">{label}</span>
+        <span className="text-sm sm:text-lg md:text-2xl font-bold text-cyan-300 font-mono drop-shadow-[0_0_5px_rgba(0,255,255,0.7)]">
             {isCurrency ? `R ${value}` : value}
         </span>
     </div>
@@ -45,7 +45,7 @@ export function ControlPanel({
         if (isFreeSpinsMode) return 'FREE SPIN';
         return 'SPIN';
     }, [isSpinning, isFreeSpinsMode, freeSpinsActivated]);
-   
+    
     const spinButtonTextStyle = useMemo(() => {
         if (spinButtonText === 'FREE SPIN') {
             return 'text-sm sm:text-base md:text-lg'; // Smaller text
@@ -54,7 +54,7 @@ export function ControlPanel({
     }, [spinButtonText]);
 
   return (
-    <Card className="w-full max-w-6xl p-1 md:p-2 bg-primary/30 border-2 border-primary/50 shadow-lg">
+    <Card className="w-full max-w-6xl p-2 md:p-4 bg-gradient-to-b from-gray-700 to-gray-900 border-2 border-gray-600 shadow-2xl">
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-1 sm:gap-2 items-center">
             
             <div className="col-span-1 flex justify-center">
@@ -65,16 +65,16 @@ export function ControlPanel({
                 {isFreeSpinsMode ? (
                     <InfoDisplay label="Free Spins" value={freeSpinsRemaining} isCurrency={false} />
                 ) : (
-                    <div className="flex flex-col items-center justify-center p-1 rounded-lg bg-black/30 w-full text-center min-h-[48px] sm:min-h-[60px] md:min-h-[80px]">
-                        <span className="text-[9px] sm:text-[10px] md:text-xs uppercase text-accent/80 font-bold tracking-widest drop-shadow-lg">Bet</span>
+                   <div className="flex flex-col items-center justify-center p-1 rounded-md bg-black/50 w-full text-center shadow-inner shadow-black min-h-[48px] sm:min-h-[60px] md:min-h-[80px]">
+                        <span className="text-[9px] sm:text-[10px] md:text-xs uppercase text-cyan-300/70 font-mono tracking-widest">Bet</span>
                         <div className="flex items-center gap-0.5 justify-center w-full mt-0.5">
-                            <Button variant="ghost" size="icon" className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 text-accent hover:text-accent/80" onClick={onDecreaseBet} disabled={isSpinning}>
+                            <Button variant="ghost" size="icon" className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 text-cyan-300 hover:text-cyan-200" onClick={onDecreaseBet} disabled={isSpinning}>
                                 <Minus className="h-3 w-3 sm:h-4 sm:w-4 md:h-6 md:w-6" />
                             </Button>
-                            <span className="text-xs sm:text-base md:text-2xl font-bold text-white font-headline drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] px-1 text-center">
+                            <span className="text-sm sm:text-lg md:text-2xl font-bold text-cyan-300 font-mono drop-shadow-[0_0_5px_rgba(0,255,255,0.7)] px-1">
                                 R {betAmount}
                             </span>
-                            <Button variant="ghost" size="icon" className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 text-accent hover:text-accent/80" onClick={onIncreaseBet} disabled={isSpinning}>
+                            <Button variant="ghost" size="icon" className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 text-cyan-300 hover:text-cyan-200" onClick={onIncreaseBet} disabled={isSpinning}>
                                 <Plus className="h-3 w-3 sm:h-4 sm:w-4 md:h-6 md:w-6" />
                             </Button>
                         </div>
@@ -99,13 +99,11 @@ export function ControlPanel({
                 >
                     <div className="absolute inset-0 rounded-full border-2 sm:border-4 border-yellow-400 pointer-events-none opacity-80"></div>
                     
-                
                     {isSpinning ? (
                         <RotateCw className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 animate-spin-slow" />
                     ) : (
-                        <span className="font-bold text-base sm:text-lg md:text-xl">{spinButtonText}</span>
+                        <span className={`${spinButtonTextStyle} font-bold`}>{spinButtonText}</span>
                     )}
-                 
                 </Button>
             </div>
 
@@ -114,7 +112,7 @@ export function ControlPanel({
             </div>
 
             <div className="hidden sm:flex col-span-1 justify-center">
-                <div className="flex flex-col items-center justify-center p-1 rounded-lg bg-black/30 w-full text-center min-h-[50px] sm:min-h-[60px] md:min-h-[80px]">
+                <div className="flex flex-col items-center justify-center p-1 rounded-md bg-black/50 w-full text-center shadow-inner shadow-black min-h-[50px] sm:min-h-[60px] md:min-h-[80px]">
                     <PayTableDialog />
                 </div>
             </div>
@@ -125,7 +123,7 @@ export function ControlPanel({
                 <InfoDisplay label="Win" value={lastWin.toFixed(2)} />
             </div>
             <div className="col-span-1 flex justify-center">
-                <div className="flex flex-col items-center justify-center p-1 rounded-lg bg-black/30 w-full text-center min-h-[48px]">
+                <div className="flex flex-col items-center justify-center p-1 rounded-md bg-black/50 w-full text-center shadow-inner shadow-black min-h-[48px]">
                     <PayTableDialog />
                 </div>
             </div>
