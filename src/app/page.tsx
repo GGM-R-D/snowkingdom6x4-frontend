@@ -4,7 +4,7 @@ import Snowfall from "@/components/game/snow-fall"; // Import the new component
 export default function Home() {
   return (
     // Add 'relative' and 'overflow-hidden' for positioning the snow
-    <main className="relative flex min-h-screen flex-col items-center justify-center p-4 overflow-hidden">
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
       
       {/* This is the snowfall component. It will be in the background. */}
       <Snowfall />

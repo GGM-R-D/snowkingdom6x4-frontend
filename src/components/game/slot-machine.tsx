@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { getWinningFeedback } from '@/app/actions';
 import type { WinningFeedbackEnhancementOutput } from '@/app/actions';
 import { ReelColumn } from './reel-column';
+import { PixiReels, type PixiReelsHandle } from './pixi-reels';
 import { ControlPanel } from './control-panel';
 import { WinAnimation } from './win-animation';
 import { WinningLinesDisplay } from './winning-lines-display';
@@ -125,6 +126,7 @@ export function SlotMachine() {
     );
   }, []);
   const [spinningReels, setSpinningReels] = useState<boolean[]>(Array(NUM_REELS).fill(false));
+  const pixiRef = useRef<PixiReelsHandle | null>(null);
   const [balance, setBalance] = useState(1000);
   const [betAmount, setBetAmount] = useState(BET_AMOUNTS[0]);
   const [lastWin, setLastWin] = useState(0);
@@ -133,6 +135,7 @@ export function SlotMachine() {
   const { toast } = useToast();
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const [freeSpinsActivated, setFreeSpinsActivated] = useState(false);
+  const [autoSpinEnabled, setAutoSpinEnabled] = useState(false);
 
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
@@ -191,6 +194,10 @@ export function SlotMachine() {
     setIsMuted(!isMuted);
   };
 
+  const toggleAutoSpin = () => {
+    setAutoSpinEnabled(prev => !prev);
+  };
+
   const isSpinning = useMemo(() => spinningReels.some(s => s), [spinningReels]);
 
   const handleIncreaseBet = () => {
@@ -242,7 +249,7 @@ export function SlotMachine() {
           newSpinning[i] = true;
          return newSpinning;
            });
-         await new Promise(resolve => setTimeout(resolve, 20)); // 250ms delay between each reel start
+         await new Promise(resolve => setTimeout(resolve, 20)); // 20ms delay between each reel start
           }
       };
 
@@ -278,26 +285,25 @@ export function SlotMachine() {
               // DO NOT set winning lines here. We will do it after the reels stop.
               // setWinningLines(newWinningLines); // <-- This was the problem line
 
-              // Animate reels stopping one by one
-              for (let i = 0; i < NUM_REELS; i++) {
+              // Animate reels via Pixi if available; otherwise fallback to DOM cells
+              // First set the React grid so overlays use backend results
+              setGrid(newGrid as any);
+              if (pixiRef.current) {
+                await pixiRef.current.spinTo(newGrid as any);
+                setSpinningReels(Array(NUM_REELS).fill(false));
+                for (let i = 0; i < NUM_REELS; i++) playReelStopSound();
+              } else {
+                for (let i = 0; i < NUM_REELS; i++) {
                   await new Promise(resolve => setTimeout(resolve, 250 + i * 50));
-
-                  // Update grid FIRST, then stop spinning animation
-                  setGrid(prevGrid => {
-                      const updatedGrid = [...prevGrid];
-                      updatedGrid[i] = newGrid[i];
-                      return updatedGrid;
-                  });
-
-                  // Small delay to ensure grid update completes
+                  // already set above for full grid; keep stagger sound and states
                   await new Promise(resolve => setTimeout(resolve, 50));
-
                   playReelStopSound();
                   setSpinningReels(prev => {
-                      const newSpinning = [...prev];
-                      newSpinning[i] = false;
-                      return newSpinning;
+                    const newSpinning = [...prev];
+                    newSpinning[i] = false;
+                    return newSpinning;
                   });
+                }
               }
 
               // *** FIX APPLIED HERE ***
@@ -376,6 +382,18 @@ export function SlotMachine() {
     }
   }, [freeSpinsRemaining, freeSpinsActivated, isSpinning, spin]);
 
+  // Auto spin when user enabled auto spin (independent of free spins)
+  useEffect(() => {
+    if (!autoSpinEnabled) return;
+    if (isSpinning) return; // allow toggling while spinning; just wait
+    if (!isFreeSpinsMode && balance < betAmount) return;
+
+    const timer = setTimeout(() => {
+      spin();
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [autoSpinEnabled, isSpinning, isFreeSpinsMode, balance, betAmount, spin]);
+
   // Add this new useEffect
       useEffect(() => {
         // Reset the activation state when the free spins counter reaches zero
@@ -427,23 +445,13 @@ export function SlotMachine() {
           )}
         </Button>
       </div>
-      <h1 className="text-3xl sm:text-4xl md:text-6xl font-headline text-accent tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
+      <h1 className="text-2xl sm:text-3xl md:text-6xl font-headline text-accent tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
         FROSTY FORTUNES
       </h1>
 
       <div className="relative w-full flex justify-center">
-        <div className="grid grid-cols-6 gap-2 p-2 bg-black/30 rounded-lg relative">
-          {Array.from({ length: NUM_REELS }).map((_, i) => (
-            <ReelColumn
-              key={i}
-              symbols={getReelSymbols(i)}
-              isSpinning={spinningReels[i]}
-              reelIndex={i}
-              winningLineIndicesForColumn={
-                Array(NUM_ROWS).fill(0).map((_, j) => getWinningLineIndices(i, j))
-              }
-            />
-          ))}
+        <div className="bg-black/30 rounded-lg relative p-2">
+          <PixiReels ref={pixiRef} reelStrips={REEL_STRIPS as any} numRows={NUM_ROWS} symbolSize={144} />
           {!isSpinning && winningLines.length > 0 && <WinningLinesDisplay winningLines={winningLines.filter(l => l.paylineIndex !== -1)} />}
         </div>
       </div>
@@ -459,6 +467,8 @@ export function SlotMachine() {
         freeSpinsRemaining={freeSpinsRemaining}
         isFreeSpinsMode={isFreeSpinsMode}
         freeSpinsActivated={freeSpinsActivated}
+        autoSpinEnabled={autoSpinEnabled}
+        onToggleAutoSpin={toggleAutoSpin}
       />
 
       {winningFeedback && (

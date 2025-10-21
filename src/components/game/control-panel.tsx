@@ -16,6 +16,8 @@ interface ControlPanelProps {
   freeSpinsRemaining: number;
   isFreeSpinsMode: boolean;
   freeSpinsActivated: boolean;
+  autoSpinEnabled: boolean;
+  onToggleAutoSpin: () => void;
 }
 
 const InfoDisplay = ({ label, value, isCurrency = true }: { label: string; value: number | string; isCurrency?: boolean }) => (
@@ -41,6 +43,8 @@ export function ControlPanel({
   freeSpinsRemaining,
   isFreeSpinsMode,
   freeSpinsActivated,
+  autoSpinEnabled,
+  onToggleAutoSpin,
 }: ControlPanelProps) {
 
     const spinButtonText = useMemo(() => {
@@ -90,7 +94,7 @@ export function ControlPanel({
             </div>
 
             {/* SPIN Button - Centered */}
-            <div className="flex flex-col items-center justify-center px-2">
+            <div className="flex items-center justify-center gap-1 px-2">
                 <Button
                     onClick={onSpin}
                     disabled={isButtonDisabled}
@@ -110,6 +114,21 @@ export function ControlPanel({
                     ) : (
                         <span className={`${spinButtonTextStyle} font-bold`}>{spinButtonText}</span>
                     )}
+                </Button>
+                {/* Auto Spin toggle - circular, smaller, same visual style as SPIN */}
+                <Button
+                    onClick={onToggleAutoSpin}
+                    className={`
+                        relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-[9px] sm:text-[10px] font-headline rounded-full
+                        flex items-center justify-center
+                        text-white transition-all duration-300 ease-in-out
+                        shadow-xl transform active:scale-95
+                        ${autoSpinEnabled ? 'spin-button-glow' : 'spin-button-glow opacity-60'}
+                    `}
+                    aria-pressed={autoSpinEnabled}
+                    title="Auto Spin"
+                >
+                    {autoSpinEnabled ? 'AUTO ON' : 'AUTO OFF'}
                 </Button>
             </div>
 
