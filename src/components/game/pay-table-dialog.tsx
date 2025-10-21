@@ -15,7 +15,7 @@ export function PayTableDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="secondary" className="font-headline tracking-wider text-sm sm:text-base">
+        <Button variant="secondary" className="text-sm sm:text-lg md:text-xl font-bold text-cyan-300 font-mono drop-shadow-[0_0_5px_rgba(0,255,255,0.7)] px-1 ">
           Pay Table
         </Button>
       </DialogTrigger>

@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PayTableDialog } from "./pay-table-dialog";
-import { Plus, Minus, RotateCw } from "lucide-react";
+import { Plus, Minus, RotateCw, BookOpen } from "lucide-react";
 import { useMemo } from 'react';
+import {cn} from '@/lib/utils';
 
 interface ControlPanelProps {
   betAmount: number;
@@ -18,9 +19,12 @@ interface ControlPanelProps {
 }
 
 const InfoDisplay = ({ label, value, isCurrency = true }: { label: string; value: number | string; isCurrency?: boolean }) => (
-    <div className="flex flex-col items-center justify-center p-1 rounded-md bg-black/50 w-full text-center shadow-inner shadow-black min-h-[48px] sm:min-h-[60px] md:min-h-[80px]">
-        <span className="text-[9px] sm:text-[10px] md:text-xs uppercase text-cyan-300/70 font-mono tracking-widest">{label}</span>
-        <span className="text-sm sm:text-lg md:text-2xl font-bold text-cyan-300 font-mono drop-shadow-[0_0_5px_rgba(0,255,255,0.7)]">
+    // Applied info-display-bg class for the new background, border, and shadows
+    <div className="flex flex-col items-center justify-center p-1 rounded-md w-full text-center min-h-[48px] sm:min-h-[60px] md:min-h-[80px] info-display-bg">
+        {/* Applied subtle-cyan-text for the new label styling */}
+        <span className="text-[9px] sm:text-[10px] md:text-xs uppercase font-mono tracking-widest subtle-cyan-text">{label}</span>
+        {/* Applied cyan-text-glow for the new value styling */}
+        <span className="text-base sm:text-xl md:text-3xl font-bold font-mono cyan-text-glow">
             {isCurrency ? `R ${value}` : value}
         </span>
     </div>
@@ -53,77 +57,78 @@ export function ControlPanel({
         return 'text-lg sm:text-xl md:text-2xl'; // Original larger text
     }, [spinButtonText]);
 
-  return (
-    <Card className="w-full max-w-6xl p-2 md:p-4 bg-gradient-to-b from-gray-700 to-gray-900 border-2 border-gray-600 shadow-2xl">
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-1 sm:gap-2 items-center">
-            
-            <div className="col-span-1 flex justify-center">
-                <InfoDisplay label="Balance" value={balance.toFixed(2)} />
-            </div>
+  // This variable determines if the button should be disabled, both functionally and visually.
+  const isButtonDisabled = isSpinning || (balance < betAmount && !isFreeSpinsMode);
 
-            <div className="col-span-1 flex justify-center">
-                {isFreeSpinsMode ? (
-                    <InfoDisplay label="Free Spins" value={freeSpinsRemaining} isCurrency={false} />
-                ) : (
-                   <div className="flex flex-col items-center justify-center p-1 rounded-md bg-black/50 w-full text-center shadow-inner shadow-black min-h-[48px] sm:min-h-[60px] md:min-h-[80px]">
-                        <span className="text-[9px] sm:text-[10px] md:text-xs uppercase text-cyan-300/70 font-mono tracking-widest">Bet</span>
+  return (
+    // Applied control-panel-card class for the main card styling
+    <Card className="w-full max-w-6xl p-2 md:p-4 shadow-2xl control-panel-card">
+        <div className="flex justify-between items-center gap-2 sm:gap-4">
+            
+            {/* Balance and Bet Section */}
+            <div className="flex flex-col gap-1 flex-1">
+                <InfoDisplay label="Balance" value={balance.toFixed(2)} />
+                {!isFreeSpinsMode && (
+                    <div className="flex flex-col items-center justify-center p-1 rounded-md w-full text-center min-h-[48px] sm:min-h-[60px] md:min-h-[80px] info-display-bg">
+                        <span className="text-[9px] sm:text-[10px] md:text-xs uppercase font-mono tracking-widest subtle-cyan-text">Bet</span>
                         <div className="flex items-center gap-0.5 justify-center w-full mt-0.5">
-                            <Button variant="ghost" size="icon" className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 text-cyan-300 hover:text-cyan-200" onClick={onDecreaseBet} disabled={isSpinning}>
+                            <Button variant="ghost" size="icon" className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 hover:text-cyan-200 bet-button-icon" onClick={onDecreaseBet} disabled={isSpinning}>
                                 <Minus className="h-3 w-3 sm:h-4 sm:w-4 md:h-6 md:w-6" />
                             </Button>
-                            <span className="text-sm sm:text-lg md:text-2xl font-bold text-cyan-300 font-mono drop-shadow-[0_0_5px_rgba(0,255,255,0.7)] px-1">
+                            <span className="text-base sm:text-xl md:text-3xl font-bold font-mono px-1 cyan-text-glow">
                                 R {betAmount}
                             </span>
-                            <Button variant="ghost" size="icon" className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 text-cyan-300 hover:text-cyan-200" onClick={onIncreaseBet} disabled={isSpinning}>
+                            <Button variant="ghost" size="icon" className="h-4 w-4 sm:h-6 sm:w-6 md:h-8 md:w-8 hover:text-cyan-200 bet-button-icon" onClick={onIncreaseBet} disabled={isSpinning}>
                                 <Plus className="h-3 w-3 sm:h-4 sm:w-4 md:h-6 md:w-6" />
                             </Button>
                         </div>
                     </div>
                 )}
+                {isFreeSpinsMode && (
+                    <InfoDisplay label="Free Spins" value={freeSpinsRemaining} isCurrency={false} />
+                )}
             </div>
 
-            <div className="col-span-1 flex flex-col items-center justify-center px-1 sm:px-0">
+            {/* SPIN Button - Centered */}
+            <div className="flex flex-col items-center justify-center px-2">
                 <Button
                     onClick={onSpin}
-                    disabled={isSpinning || (balance < betAmount && !isFreeSpinsMode)}
+                    disabled={isButtonDisabled}
                     className={`
                         relative w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 text-xl sm:text-2xl font-headline rounded-full
                         flex items-center justify-center
                         text-white transition-all duration-300 ease-in-out
                         shadow-xl transform active:scale-95
-                        ${isSpinning 
-                            ? 'bg-gray-600 cursor-not-allowed inset-shadow-blue' 
-                            : 'btn-spin-blue-glow bg-gradient-to-br from-blue-500 to-blue-800 hover:from-blue-400 hover:to-blue-700'
+                        ${isButtonDisabled 
+                            ? 'spin-button-disabled' 
+                            : 'spin-button-glow'
                         }
                     `}
                 >
-                    <div className="absolute inset-0 rounded-full border-2 sm:border-4 border-yellow-400 pointer-events-none opacity-80"></div>
-                    
                     {isSpinning ? (
-                        <RotateCw className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 animate-spin-slow" />
+                        <RotateCw className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 animate-spin-slow text-white" />
                     ) : (
                         <span className={`${spinButtonTextStyle} font-bold`}>{spinButtonText}</span>
                     )}
                 </Button>
             </div>
 
-            <div className="hidden sm:flex col-span-1 justify-center">
+            {/* Win and Pay Table Section */}
+            <div className="flex flex-col gap-1 flex-1">
                 <InfoDisplay label="Win" value={lastWin.toFixed(2)} />
-            </div>
-
-            <div className="hidden sm:flex col-span-1 justify-center">
-                <div className="flex flex-col items-center justify-center p-1 rounded-md bg-black/50 w-full text-center shadow-inner shadow-black min-h-[50px] sm:min-h-[60px] md:min-h-[80px]">
+                <div className="flex flex-col items-center justify-center p-1 rounded-md w-full text-center min-h-[48px] sm:min-h-[60px] md:min-h-[80px] info-display-bg">
                     <PayTableDialog />
                 </div>
             </div>
         </div>
 
+        {/* Mobile layout - hidden on larger screens */}
         <div className="grid grid-cols-2 sm:hidden gap-1 mt-1">
             <div className="col-span-1 flex justify-center">
                 <InfoDisplay label="Win" value={lastWin.toFixed(2)} />
             </div>
             <div className="col-span-1 flex justify-center">
-                <div className="flex flex-col items-center justify-center p-1 rounded-md bg-black/50 w-full text-center shadow-inner shadow-black min-h-[48px]">
+                <div className="flex flex-col items-center justify-center p-1 rounded-md w-full text-center min-h-[48px] info-display-bg">
                     <PayTableDialog />
                 </div>
             </div>
