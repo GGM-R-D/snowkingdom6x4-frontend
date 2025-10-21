@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PayTableDialog } from "./pay-table-dialog";
 import { Plus, Minus, RotateCw } from "lucide-react";
+import { useMemo } from 'react'; // Make sure useMemo is imported
 
 interface ControlPanelProps {
   betAmount: number;
@@ -13,6 +14,7 @@ interface ControlPanelProps {
   onDecreaseBet: () => void;
   freeSpinsRemaining: number;
   isFreeSpinsMode: boolean;
+  freeSpinsActivated: boolean;
 }
 
 const InfoDisplay = ({ label, value, isCurrency = true }: { label: string; value: number | string; isCurrency?: boolean }) => (
@@ -33,8 +35,24 @@ export function ControlPanel({
   onIncreaseBet,
   onDecreaseBet,
   freeSpinsRemaining,
-  isFreeSpinsMode
+  isFreeSpinsMode,
+  freeSpinsActivated,
 }: ControlPanelProps) {
+
+    const spinButtonText = useMemo(() => {
+        if (isSpinning) return 'SPINNING';
+        if (isFreeSpinsMode && !freeSpinsActivated) return 'START';
+        if (isFreeSpinsMode) return 'FREE SPIN';
+        return 'SPIN';
+    }, [isSpinning, isFreeSpinsMode, freeSpinsActivated]);
+   
+    const spinButtonTextStyle = useMemo(() => {
+        if (spinButtonText === 'FREE SPIN') {
+            return 'text-sm sm:text-base md:text-lg'; // Smaller text
+        }
+        return 'text-lg sm:text-xl md:text-2xl'; // Original larger text
+    }, [spinButtonText]);
+
   return (
     <Card className="w-full max-w-6xl p-1 md:p-2 bg-primary/30 border-2 border-primary/50 shadow-lg">
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-1 sm:gap-2 items-center">
@@ -69,7 +87,7 @@ export function ControlPanel({
                     onClick={onSpin}
                     disabled={isSpinning || (balance < betAmount && !isFreeSpinsMode)}
                     className={`
-                        relative w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 text-xl sm:text-2xl md:text-4xl font-headline rounded-full
+                        relative w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 text-xl sm:text-2xl font-headline rounded-full
                         flex items-center justify-center
                         text-white transition-all duration-300 ease-in-out
                         shadow-xl transform active:scale-95
@@ -80,7 +98,14 @@ export function ControlPanel({
                     `}
                 >
                     <div className="absolute inset-0 rounded-full border-2 sm:border-4 border-yellow-400 pointer-events-none opacity-80"></div>
-                    <RotateCw className={`w-8 h-8 sm:w-12 sm:h-12 md:w-20 md:h-20 ${isSpinning ? 'animate-spin-slow' : ''}`} />
+                    
+                
+                    {isSpinning ? (
+                        <RotateCw className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 animate-spin-slow" />
+                    ) : (
+                        <span className="font-bold text-base sm:text-lg md:text-xl">{spinButtonText}</span>
+                    )}
+                 
                 </Button>
             </div>
 

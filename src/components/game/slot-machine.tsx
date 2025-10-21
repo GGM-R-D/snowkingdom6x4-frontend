@@ -132,6 +132,7 @@ export function SlotMachine() {
   const [winningFeedback, setWinningFeedback] = useState<WinningFeedbackEnhancementOutput | null>(null);
   const { toast } = useToast();
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  const [freeSpinsActivated, setFreeSpinsActivated] = useState(false);
 
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
@@ -210,6 +211,10 @@ export function SlotMachine() {
 
       const spin = useCallback(async () => {
           if (isSpinning) return;
+          // Add this block to activate free spins on the first click
+            if (isFreeSpinsMode && !freeSpinsActivated) {
+              setFreeSpinsActivated(true);
+            }
 
           // Check balance on frontend for quick response
           if (balance < betAmount && freeSpinsRemaining === 0) {
@@ -237,7 +242,7 @@ export function SlotMachine() {
           newSpinning[i] = true;
          return newSpinning;
            });
-         await new Promise(resolve => setTimeout(resolve, 50));
+         await new Promise(resolve => setTimeout(resolve, 20)); // 250ms delay between each reel start
           }
       };
 
@@ -299,6 +304,19 @@ export function SlotMachine() {
               // Now that all reels have visually stopped, we can reveal the winning lines.
               // This is the perfect time to trigger the animations.
               stopSpinSound();
+
+              if (data.game.results.scatterWin.triggeredFreeSpins) {
+               const scatterLine: WinningLine = {
+               paylineIndex: -1, // Special index for non-payline wins
+               symbol: 'SCATTER',
+               count: data.game.results.scatterWin.count,
+               payout: 0, // The reward is the free spins, not a direct payout
+               line: [], // Not used for scatters, but the type requires it
+              };
+               // Add our special scatter line to the list of lines to be animated
+                 newWinningLines.push(scatterLine);
+            }
+
               setWinningLines(newWinningLines);
               
                 // Update state from backend response
@@ -347,14 +365,24 @@ export function SlotMachine() {
               stopSpinSound();
           }
       }, [isSpinning, balance, betAmount, freeSpinsRemaining, toast, playSpinSound, stopSpinSound, playReelStopSound, playWinSound, playBigWinSound, playFreeSpinsTriggerSound, sessionId]);
-  useEffect(() => {
-    if (freeSpinsRemaining > 0 && !isSpinning) {
+        
+      useEffect(() => {
+    // Only run auto-spins if the feature has been activated by the user
+    if (freeSpinsRemaining > 0 && freeSpinsActivated && !isSpinning) {
       const timer = setTimeout(() => {
         spin();
-      }, 2000);
+      }, 2000); // 2-second delay between auto-spins
       return () => clearTimeout(timer);
     }
-  }, [freeSpinsRemaining, isSpinning, spin]);
+  }, [freeSpinsRemaining, freeSpinsActivated, isSpinning, spin]);
+
+  // Add this new useEffect
+      useEffect(() => {
+        // Reset the activation state when the free spins counter reaches zero
+        if (freeSpinsRemaining === 0) {
+          setFreeSpinsActivated(false);
+        }
+      }, [freeSpinsRemaining]);
 
   // For spinning reels, show the reel strip for animation (matching original behavior)
   const getReelSymbols = (reelIndex: number) => {
@@ -430,6 +458,7 @@ export function SlotMachine() {
         onDecreaseBet={handleDecreaseBet}
         freeSpinsRemaining={freeSpinsRemaining}
         isFreeSpinsMode={isFreeSpinsMode}
+        freeSpinsActivated={freeSpinsActivated}
       />
 
       {winningFeedback && (
