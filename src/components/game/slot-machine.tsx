@@ -140,6 +140,7 @@ export function SlotMachine() {
   const [isMuted, setIsMuted] = useState(false);
   const [isAutoSpin, setIsAutoSpin] = useState(false);
   const [isTurboMode, setIsTurboMode] = useState(false);
+  const [bouncingReels, setBouncingReels] = useState<boolean[]>(Array(NUM_REELS).fill(false));
   const isFreeSpinsMode = useMemo(() => freeSpinsRemaining > 0, [freeSpinsRemaining]);
 
   const soundConfig = {
@@ -239,6 +240,8 @@ export function SlotMachine() {
           // Add this block to activate free spins on the first click
             if (isFreeSpinsMode && !freeSpinsActivated) {
               setFreeSpinsActivated(true);
+              // Hide free spins overlay when free spins actually start
+              setShowFreeSpinsOverlay({ show: false, count: 0 });
             }
 
           // Check balance on frontend for quick response
@@ -257,7 +260,7 @@ export function SlotMachine() {
           // Start spinning animation
           setLastWin(0);
           setWinningLines([]);
-          setWinningFeedback(null);
+          setWinningFeedback(null); // Clear any existing win animation
 
           // Asynchronously start reels one by one to ensure staggering
           const startDelay = isTurboMode ? 0 : 10; // Turbo: instant, Normal: 10ms between reels
@@ -335,6 +338,22 @@ export function SlotMachine() {
                   await new Promise(resolve => setTimeout(resolve, gridUpdateDelay));
 
                   playReelStopSound();
+                  
+                  // Trigger bounce animation for this reel (synced with sound)
+                  setBouncingReels(prev => {
+                      const newBouncing = [...prev];
+                      newBouncing[i] = true;
+                      return newBouncing;
+                  });
+                  
+                  // Reset bounce after animation
+                  setTimeout(() => {
+                      setBouncingReels(prev => {
+                          const newBouncing = [...prev];
+                          newBouncing[i] = false;
+                          return newBouncing;
+                      });
+                  }, 300);
                   setSpinningReels(prev => {
                       const newSpinning = [...prev];
                       newSpinning[i] = false;
@@ -503,6 +522,7 @@ export function SlotMachine() {
                 Array(NUM_ROWS).fill(0).map((_, j) => getWinningLineIndices(i, j))
               }
               isTurboMode={isTurboMode}
+              shouldBounce={bouncingReels[i]}
             />
           ))}
           {!isSpinning && winningLines.length > 0 && <WinningLinesDisplay winningLines={winningLines.filter(l => l.paylineIndex !== -1)} />}

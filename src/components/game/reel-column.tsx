@@ -12,23 +12,24 @@ interface ReelColumnProps {
   reelIndex: number;
   winningLineIndicesForColumn: number[][];
   isTurboMode?: boolean;
+  shouldBounce?: boolean;
 }
 
-export function ReelColumn({ symbols, isSpinning, reelIndex, winningLineIndicesForColumn, isTurboMode = false }: ReelColumnProps) {
+export function ReelColumn({ symbols, isSpinning, reelIndex, winningLineIndicesForColumn, isTurboMode = false, shouldBounce = false }: ReelColumnProps) {
     const reelStrip = REEL_STRIPS[reelIndex];
     const [isStopping, setIsStopping] = useState(false);
 
     useEffect(() => {
-        if (!isSpinning && !isTurboMode) {
-            // Only bounce in normal mode, skip completely in turbo
+        if (shouldBounce && !isTurboMode) {
+            // Trigger bounce when shouldBounce is true (synced with reel stop sound)
             setIsStopping(true);
-            const timer = setTimeout(() => setIsStopping(false), 500);
+            const timer = setTimeout(() => setIsStopping(false), 300);
             return () => clearTimeout(timer);
         } else if (!isSpinning && isTurboMode) {
             // No bounce animation for turbo
             setIsStopping(false);
         }
-    }, [isSpinning, isTurboMode]);
+    }, [shouldBounce, isTurboMode, isSpinning]);
 
     // Duplicate once for seamless loop without extra work
     const displaySymbols = isSpinning ? [...reelStrip, ...reelStrip] : symbols;

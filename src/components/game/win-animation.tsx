@@ -49,7 +49,8 @@ export function WinAnimation({ feedback, onAnimationComplete, onCountComplete }:
 
     // Counter animation for win amount using requestAnimationFrame for smoothness
     const targetAmount = feedback.winAmount;
-    const duration = 2500; // 2.5 seconds for counting
+    // Fixed slower duration for all wins to build anticipation
+    const duration = 4000; // 4 seconds for all wins - slow and satisfying
     const startTime = performance.now();
     let animationFrameId: number;
 
@@ -76,10 +77,12 @@ export function WinAnimation({ feedback, onAnimationComplete, onCountComplete }:
 
     animationFrameId = requestAnimationFrame(animate);
 
+    // Fixed timer based on counting duration + fade time
+    const totalDuration = duration + 1000; // Add 1 second for fade out (5 seconds total)
     const animationTimer = setTimeout(() => {
         setShow(false);
         setTimeout(onAnimationComplete, 500);
-    }, 5000);
+    }, totalDuration);
 
     return () => {
       clearTimeout(showTimer);
@@ -99,11 +102,11 @@ export function WinAnimation({ feedback, onAnimationComplete, onCountComplete }:
         {feedback.animationType.includes('coin') && coins.map(id => <Coin key={id} id={id} onEnded={handleCoinEnd} />)}
       </div>
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="bg-black/70 p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl shadow-2xl border-2 border-accent max-w-[90%] sm:max-w-md text-center animate-fade-in-scale">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-headline text-accent drop-shadow-lg leading-tight mb-2">
+        <div className="bg-black/70 p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl shadow-2xl border-2 border-accent max-w-[90%] sm:max-w-lg text-center animate-fade-in-scale">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-headline text-accent drop-shadow-lg leading-tight mb-2">
                 {feedback.feedbackText}
             </h2>
-            <p className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-yellow-400 drop-shadow-lg">
+            <p className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-accent drop-shadow-lg">
                 R {displayAmount.toFixed(2)}
             </p>
         </div>
