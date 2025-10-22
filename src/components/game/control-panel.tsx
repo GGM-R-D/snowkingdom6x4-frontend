@@ -18,6 +18,8 @@ interface ControlPanelProps {
   freeSpinsActivated: boolean;
   isAutoSpin: boolean;
   onToggleAutoSpin: () => void;
+  isTurboMode: boolean;
+  onToggleTurbo: () => void;
 }
 
 const InfoDisplay = ({ label, value, isCurrency = true }: { label: string; value: number | string; isCurrency?: boolean }) => (
@@ -45,6 +47,8 @@ export function ControlPanel({
   freeSpinsActivated,
   isAutoSpin,
   onToggleAutoSpin,
+  isTurboMode,
+  onToggleTurbo,
 }: ControlPanelProps) {
 
     const spinButtonText = useMemo(() => {
@@ -93,9 +97,26 @@ export function ControlPanel({
                 )}
             </div>
 
-            {/* SPIN and AUTO SPIN Buttons - Centered */}
+            {/* TURBO, SPIN and AUTO SPIN Buttons - Centered */}
             <div className="flex flex-col items-center justify-center px-2">
                 <div className="flex items-center gap-2">
+                    {/* TURBO Button */}
+                    <Button
+                        onClick={onToggleTurbo}
+                        className={`
+                            relative w-12 h-12 sm:w-14 sm:h-14 md:w-20 md:h-20 text-[10px] sm:text-xs md:text-sm font-headline rounded-full
+                            flex items-center justify-center
+                            text-white transition-all duration-300 ease-in-out
+                            shadow-xl transform active:scale-95
+                            ${isTurboMode 
+                                ? 'spin-button-glow' 
+                                : 'auto-spin-disabled'
+                            }
+                        `}
+                    >
+                        <span className="font-bold">TURBO</span>
+                    </Button>
+                    
                     {/* SPIN Button */}
                     <Button
                         onClick={onSpin}
@@ -122,7 +143,7 @@ export function ControlPanel({
                     <Button
                         onClick={onToggleAutoSpin}
                         className={`
-                            relative w-12 h-12 sm:w-14 sm:h-14 md:w-20 md:h-20 text-sm sm:text-base md:text-lg font-headline rounded-full
+                            relative w-12 h-12 sm:w-14 sm:h-14 md:w-20 md:h-20 text-[10px] sm:text-xs md:text-sm font-headline rounded-full
                             flex items-center justify-center
                             text-white transition-all duration-300 ease-in-out
                             shadow-xl transform active:scale-95

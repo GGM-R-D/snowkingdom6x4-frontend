@@ -139,6 +139,7 @@ export function SlotMachine() {
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [isAutoSpin, setIsAutoSpin] = useState(false);
+  const [isTurboMode, setIsTurboMode] = useState(false);
   const isFreeSpinsMode = useMemo(() => freeSpinsRemaining > 0, [freeSpinsRemaining]);
 
   const soundConfig = {
@@ -217,6 +218,11 @@ export function SlotMachine() {
     setIsAutoSpin(prev => !prev);
   };
 
+  const handleToggleTurbo = () => {
+    playClickSound();
+    setIsTurboMode(prev => !prev);
+  };
+
       const spin = useCallback(async () => {
           if (isSpinning) return;
           // Add this block to activate free spins on the first click
@@ -243,6 +249,7 @@ export function SlotMachine() {
           setWinningFeedback(null);
 
           // Asynchronously start reels one by one to ensure staggering
+          const startDelay = isTurboMode ? 2 : 20; // 10x faster in turbo mode
           const startReelsSequentially = async () => {
           for (let i = 0; i < NUM_REELS; i++) {
           setSpinningReels(prev => {
@@ -250,7 +257,7 @@ export function SlotMachine() {
           newSpinning[i] = true;
          return newSpinning;
            });
-         await new Promise(resolve => setTimeout(resolve, 20)); // 250ms delay between each reel start
+         await new Promise(resolve => setTimeout(resolve, startDelay));
           }
       };
 
@@ -287,8 +294,12 @@ export function SlotMachine() {
               // setWinningLines(newWinningLines); // <-- This was the problem line
 
               // Animate reels stopping one by one
+              const stopBaseDelay = isTurboMode ? 25 : 250; // Turbo: 25ms, Normal: 250ms (10x faster)
+              const stopIncrementDelay = isTurboMode ? 5 : 50; // Turbo: 5ms, Normal: 50ms (10x faster)
+              const gridUpdateDelay = isTurboMode ? 5 : 50; // Turbo: 5ms, Normal: 50ms (10x faster)
+              
               for (let i = 0; i < NUM_REELS; i++) {
-                  await new Promise(resolve => setTimeout(resolve, 250 + i * 50));
+                  await new Promise(resolve => setTimeout(resolve, stopBaseDelay + i * stopIncrementDelay));
 
                   // Update grid FIRST, then stop spinning animation
                   setGrid(prevGrid => {
@@ -298,7 +309,7 @@ export function SlotMachine() {
                   });
 
                   // Small delay to ensure grid update completes
-                  await new Promise(resolve => setTimeout(resolve, 50));
+                  await new Promise(resolve => setTimeout(resolve, gridUpdateDelay));
 
                   playReelStopSound();
                   setSpinningReels(prev => {
@@ -368,7 +379,7 @@ export function SlotMachine() {
               setSpinningReels(Array(NUM_REELS).fill(false));
               stopSpinSound();
           }
-      }, [isSpinning, balance, betAmount, freeSpinsRemaining, toast, playSpinSound, stopSpinSound, playReelStopSound, playWinSound, playBigWinSound, playFreeSpinsTriggerSound, sessionId]);
+      }, [isSpinning, balance, betAmount, freeSpinsRemaining, toast, playSpinSound, stopSpinSound, playReelStopSound, playWinSound, playBigWinSound, playFreeSpinsTriggerSound, sessionId, isTurboMode]);
         
        useEffect(() => {
      // Only run auto-spins if the feature has been activated by the user
@@ -465,6 +476,7 @@ export function SlotMachine() {
               winningLineIndicesForColumn={
                 Array(NUM_ROWS).fill(0).map((_, j) => getWinningLineIndices(i, j))
               }
+              isTurboMode={isTurboMode}
             />
           ))}
           {!isSpinning && winningLines.length > 0 && <WinningLinesDisplay winningLines={winningLines.filter(l => l.paylineIndex !== -1)} />}
@@ -484,6 +496,8 @@ export function SlotMachine() {
          freeSpinsActivated={freeSpinsActivated}
          isAutoSpin={isAutoSpin}
          onToggleAutoSpin={handleToggleAutoSpin}
+         isTurboMode={isTurboMode}
+         onToggleTurbo={handleToggleTurbo}
        />
 
       {winningFeedback && (

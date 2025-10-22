@@ -11,19 +11,22 @@ interface ReelColumnProps {
   isSpinning: boolean;
   reelIndex: number;
   winningLineIndicesForColumn: number[][];
+  isTurboMode?: boolean;
 }
 
-export function ReelColumn({ symbols, isSpinning, reelIndex, winningLineIndicesForColumn }: ReelColumnProps) {
+export function ReelColumn({ symbols, isSpinning, reelIndex, winningLineIndicesForColumn, isTurboMode = false }: ReelColumnProps) {
     const reelStrip = REEL_STRIPS[reelIndex];
     const [isStopping, setIsStopping] = useState(false);
 
     useEffect(() => {
         if (!isSpinning) {
             setIsStopping(true);
-            const timer = setTimeout(() => setIsStopping(false), 500); // Duration of the bounce animation
+            // Turbo: 150ms bounce, Normal: 500ms bounce
+            const bounceTime = isTurboMode ? 150 : 500;
+            const timer = setTimeout(() => setIsStopping(false), bounceTime);
             return () => clearTimeout(timer);
         }
-    }, [isSpinning]);
+    }, [isSpinning, isTurboMode]);
 
     // Duplicate once for seamless loop without extra work
     const displaySymbols = isSpinning ? [...reelStrip, ...reelStrip] : symbols;
