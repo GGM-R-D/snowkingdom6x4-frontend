@@ -19,12 +19,14 @@ export function ReelColumn({ symbols, isSpinning, reelIndex, winningLineIndicesF
     const [isStopping, setIsStopping] = useState(false);
 
     useEffect(() => {
-        if (!isSpinning) {
+        if (!isSpinning && !isTurboMode) {
+            // Only bounce in normal mode, skip completely in turbo
             setIsStopping(true);
-            // Turbo: 150ms bounce, Normal: 500ms bounce
-            const bounceTime = isTurboMode ? 150 : 500;
-            const timer = setTimeout(() => setIsStopping(false), bounceTime);
+            const timer = setTimeout(() => setIsStopping(false), 500);
             return () => clearTimeout(timer);
+        } else if (!isSpinning && isTurboMode) {
+            // No bounce animation for turbo
+            setIsStopping(false);
         }
     }, [isSpinning, isTurboMode]);
 

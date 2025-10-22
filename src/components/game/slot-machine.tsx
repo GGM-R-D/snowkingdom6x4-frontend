@@ -249,7 +249,7 @@ export function SlotMachine() {
           setWinningFeedback(null);
 
           // Asynchronously start reels one by one to ensure staggering
-          const startDelay = isTurboMode ? 2 : 20; // 10x faster in turbo mode
+          const startDelay = isTurboMode ? 0 : 20; // Instant start in turbo mode
           const startReelsSequentially = async () => {
           for (let i = 0; i < NUM_REELS; i++) {
           setSpinningReels(prev => {
@@ -294,9 +294,9 @@ export function SlotMachine() {
               // setWinningLines(newWinningLines); // <-- This was the problem line
 
               // Animate reels stopping one by one
-              const stopBaseDelay = isTurboMode ? 25 : 250; // Turbo: 25ms, Normal: 250ms (10x faster)
-              const stopIncrementDelay = isTurboMode ? 5 : 50; // Turbo: 5ms, Normal: 50ms (10x faster)
-              const gridUpdateDelay = isTurboMode ? 5 : 50; // Turbo: 5ms, Normal: 50ms (10x faster)
+              const stopBaseDelay = isTurboMode ? 10 : 250; // Turbo: 10ms, Normal: 250ms
+              const stopIncrementDelay = isTurboMode ? 3 : 50; // Turbo: 3ms, Normal: 50ms
+              const gridUpdateDelay = isTurboMode ? 2 : 50; // Turbo: 2ms, Normal: 50ms
               
               for (let i = 0; i < NUM_REELS; i++) {
                   await new Promise(resolve => setTimeout(resolve, stopBaseDelay + i * stopIncrementDelay));
