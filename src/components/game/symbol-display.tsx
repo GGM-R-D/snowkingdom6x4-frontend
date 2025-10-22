@@ -73,6 +73,7 @@ export function SymbolDisplay({ symbolId, className, winningLineIndices = [] }: 
           src={symbol.image} 
           alt={symbolId.toLowerCase()} 
           fill
+          sizes="(max-width: 640px) 48px, (max-width: 768px) 80px, 144px"
           className={cn(
             "object-cover drop-shadow-lg transition-opacity duration-300",
             // If a video is playing, the image is hidden; otherwise, it's visible.

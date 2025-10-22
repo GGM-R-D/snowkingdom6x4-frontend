@@ -25,17 +25,17 @@ export function ReelColumn({ symbols, isSpinning, reelIndex, winningLineIndicesF
         }
     }, [isSpinning]);
 
-    // By duplicating the reel strip, we create a seamless loop for the animation.
-    const displaySymbols = isSpinning ? [...reelStrip, ...reelStrip, ...reelStrip.slice(0, NUM_ROWS)] : symbols;
+    // Duplicate once for seamless loop without extra work
+    const displaySymbols = isSpinning ? [...reelStrip, ...reelStrip] : symbols;
     
     // increased the height at each breakpoint to create more space at the bottom.
     const containerHeightClass = 'h-[228px] sm:h-[360px] md:h-[600px]';
 
     return (
-        <div className={cn("overflow-hidden", containerHeightClass)}>
+        <div className={cn("overflow-hidden contain-paint", containerHeightClass)}>
             <div
                 className={cn(
-                    'flex flex-col gap-2',
+                    'flex flex-col gap-2 transform-gpu will-change-transform',
                     isSpinning && 'animate-reel-spin',
                     isStopping && 'animate-reel-bounce'
                 )}

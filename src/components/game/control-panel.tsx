@@ -66,7 +66,7 @@ export function ControlPanel({
 
   return (
     // Applied control-panel-card class for the main card styling
-    <Card className="w-full max-w-6xl p-2 md:p-4 shadow-2xl control-panel-card">
+    <Card className="w-full max-w-6xl p-2 md:p-4 shadow-2xl control-panel-card sm:backdrop-blur">
         <div className="flex justify-between items-center gap-2 sm:gap-4">
             
             {/* Balance and Bet Section */}
@@ -137,8 +137,8 @@ export function ControlPanel({
                 </div>
             </div>
 
-            {/* Win and Pay Table Section */}
-            <div className="flex flex-col gap-1 flex-1">
+            {/* Win and Pay Table Section (hidden on mobile, shown from sm and up) */}
+            <div className="hidden sm:flex flex-col gap-1 flex-1">
                 <InfoDisplay label="Win" value={lastWin.toFixed(2)} />
                 <div className="flex flex-col items-center justify-center p-1 rounded-md w-full text-center min-h-[48px] sm:min-h-[60px] md:min-h-[80px] info-display-bg">
                     <PayTableDialog />

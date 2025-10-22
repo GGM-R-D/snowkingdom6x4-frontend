@@ -6,6 +6,7 @@ import type { WinningFeedbackEnhancementOutput } from '@/app/actions';
 import { ReelColumn } from './reel-column';
 import { ControlPanel } from './control-panel';
 import { WinAnimation } from './win-animation';
+import { FreeSpinsOverlay } from './free-spins-overlay';
 import { WinningLinesDisplay } from './winning-lines-display';
 import { useToast } from '@/hooks/use-toast';
 import useSound from 'use-sound';
@@ -133,6 +134,7 @@ export function SlotMachine() {
   const { toast } = useToast();
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const [freeSpinsActivated, setFreeSpinsActivated] = useState(false);
+  const [showFreeSpinsOverlay, setShowFreeSpinsOverlay] = useState<{show: boolean; count: number}>({ show: false, count: 0 });
 
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
@@ -335,11 +337,7 @@ export function SlotMachine() {
               // Handle free spins trigger
               if (data.game.results.scatterWin.triggeredFreeSpins) {
                   playFreeSpinsTriggerSound();
-                  toast({
-                      title: "Free Spins Triggered!",
-                      description: `You won ${FREE_SPINS_AWARDED} free spins!`,
-                      duration: 5000,
-                  });
+                  setShowFreeSpinsOverlay({ show: true, count: FREE_SPINS_AWARDED });
               }
 
               // Handle wins (This logic is already in the correct place)
@@ -435,6 +433,7 @@ export function SlotMachine() {
   };
 
   return (
+    <>
     <div className="flex flex-col items-center gap-2 md:gap-4 p-2 md:p-4 rounded-2xl bg-card/50 border-2 md:border-4 border-primary/50 shadow-2xl w-full max-w-6xl relative">
       <div className="absolute top-2 right-2 z-10">
         <Button
@@ -492,11 +491,18 @@ export function SlotMachine() {
           feedback={winningFeedback}
           onAnimationComplete={() => {
             setWinningFeedback(null);
-            if (!isFreeSpinsMode) setWinningLines([]);
+            // Don't clear winning lines - let them persist until next spin
           }}
         />
       )}
     </div>
+      {showFreeSpinsOverlay.show && (
+        <FreeSpinsOverlay
+          count={showFreeSpinsOverlay.count}
+          onClose={() => setShowFreeSpinsOverlay({ show: false, count: 0 })}
+        />
+      )}
+    </>
   );
 }
 
