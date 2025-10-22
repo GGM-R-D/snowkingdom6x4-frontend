@@ -249,7 +249,7 @@ export function SlotMachine() {
           setWinningFeedback(null);
 
           // Asynchronously start reels one by one to ensure staggering
-          const startDelay = isTurboMode ? 0 : 20; // Instant start in turbo mode
+          const startDelay = isTurboMode ? 0 : 10; // Turbo: instant, Normal: 10ms between reels
           const startReelsSequentially = async () => {
           for (let i = 0; i < NUM_REELS; i++) {
           setSpinningReels(prev => {
@@ -263,6 +263,9 @@ export function SlotMachine() {
 
            // Start the reel animation without waiting for it to finish
            startReelsSequentially();
+           
+           // Track when spinning started for minimum spin duration
+           const spinStartTime = Date.now();
 
           try {
               // Call backend API
@@ -293,10 +296,19 @@ export function SlotMachine() {
               // DO NOT set winning lines here. We will do it after the reels stop.
               // setWinningLines(newWinningLines); // <-- This was the problem line
 
+              // Ensure minimum spin time so animation looks good
+              const minSpinTime = isTurboMode ? 200 : 600; // Turbo: 200ms, Normal: 600ms minimum
+              const elapsedTime = Date.now() - spinStartTime;
+              const remainingTime = Math.max(0, minSpinTime - elapsedTime);
+              
+              if (remainingTime > 0) {
+                await new Promise(resolve => setTimeout(resolve, remainingTime));
+              }
+
               // Animate reels stopping one by one
-              const stopBaseDelay = isTurboMode ? 10 : 250; // Turbo: 10ms, Normal: 250ms
-              const stopIncrementDelay = isTurboMode ? 3 : 50; // Turbo: 3ms, Normal: 50ms
-              const gridUpdateDelay = isTurboMode ? 2 : 50; // Turbo: 2ms, Normal: 50ms
+              const stopBaseDelay = isTurboMode ? 5 : 40; // Turbo: 5ms, Normal: 40ms
+              const stopIncrementDelay = isTurboMode ? 2 : 20; // Turbo: 2ms, Normal: 20ms  
+              const gridUpdateDelay = isTurboMode ? 2 : 20; // Turbo: 2ms, Normal: 20ms
               
               for (let i = 0; i < NUM_REELS; i++) {
                   await new Promise(resolve => setTimeout(resolve, stopBaseDelay + i * stopIncrementDelay));
@@ -341,7 +353,8 @@ export function SlotMachine() {
                 // Update state from backend response
               setBalance(data.player.balance);
               setFreeSpinsRemaining(data.player.freeSpinsRemaining);
-              setLastWin(data.player.lastWin);
+              // Don't update lastWin yet - wait for counter animation to finish
+              // setLastWin(data.player.lastWin);
 
               await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -383,24 +396,26 @@ export function SlotMachine() {
         
        useEffect(() => {
      // Only run auto-spins if the feature has been activated by the user
-     if (freeSpinsRemaining > 0 && freeSpinsActivated && !isSpinning) {
+     // Also check that win animation is not playing
+     if (freeSpinsRemaining > 0 && freeSpinsActivated && !isSpinning && !winningFeedback) {
        const timer = setTimeout(() => {
          spin();
        }, 2000); // 2-second delay between auto-spins
        return () => clearTimeout(timer);
      }
-   }, [freeSpinsRemaining, freeSpinsActivated, isSpinning, spin]);
+   }, [freeSpinsRemaining, freeSpinsActivated, isSpinning, winningFeedback, spin]);
 
   // Auto spin logic - similar to free spins but for regular gameplay
   useEffect(() => {
     // Only run auto-spins if auto spin is enabled and not in free spins mode
-    if (isAutoSpin && !isFreeSpinsMode && !isSpinning && balance >= betAmount) {
+    // Also check that win animation is not playing
+    if (isAutoSpin && !isFreeSpinsMode && !isSpinning && !winningFeedback && balance >= betAmount) {
       const timer = setTimeout(() => {
         spin();
       }, 2000); // 2-second delay between auto-spins
       return () => clearTimeout(timer);
     }
-  }, [isAutoSpin, isFreeSpinsMode, isSpinning, balance, betAmount, spin]);
+  }, [isAutoSpin, isFreeSpinsMode, isSpinning, winningFeedback, balance, betAmount, spin]);
 
   // Disable auto spin when balance is insufficient or when free spins are triggered
   useEffect(() => {
@@ -506,6 +521,10 @@ export function SlotMachine() {
           onAnimationComplete={() => {
             setWinningFeedback(null);
             // Don't clear winning lines - let them persist until next spin
+          }}
+          onCountComplete={(amount) => {
+            // Update control panel only when counting finishes
+            setLastWin(amount);
           }}
         />
       )}

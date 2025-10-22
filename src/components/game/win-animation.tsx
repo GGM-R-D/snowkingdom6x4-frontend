@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { WinningFeedbackEnhancementOutput } from '@/ai/flows/winning-feedback-enhancement';
+import type { WinningFeedbackEnhancementOutput } from '@/app/actions';
 import { Coins } from 'lucide-react';
 
 interface WinAnimationProps {
   feedback: WinningFeedbackEnhancementOutput;
   onAnimationComplete: () => void;
+  onCountComplete?: (amount: number) => void;
 }
 
 const Coin = ({ id, onEnded }: { id: number; onEnded: (id: number) => void }) => {
@@ -33,9 +34,10 @@ const Coin = ({ id, onEnded }: { id: number; onEnded: (id: number) => void }) =>
   );
 };
 
-export function WinAnimation({ feedback, onAnimationComplete }: WinAnimationProps) {
+export function WinAnimation({ feedback, onAnimationComplete, onCountComplete }: WinAnimationProps) {
   const [coins, setCoins] = useState<number[]>([]);
   const [show, setShow] = useState(false);
+  const [displayAmount, setDisplayAmount] = useState(0);
 
   useEffect(() => {
     const showTimer = setTimeout(() => setShow(true), 500);
@@ -45,6 +47,35 @@ export function WinAnimation({ feedback, onAnimationComplete }: WinAnimationProp
       setCoins(newCoins);
     }
 
+    // Counter animation for win amount using requestAnimationFrame for smoothness
+    const targetAmount = feedback.winAmount;
+    const duration = 2500; // 2.5 seconds for counting
+    const startTime = performance.now();
+    let animationFrameId: number;
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Ease-out cubic for more natural counting
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      const currentAmount = targetAmount * easeProgress;
+      
+      setDisplayAmount(currentAmount);
+
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(animate);
+      } else {
+        setDisplayAmount(targetAmount);
+        // Notify when counting is complete
+        if (onCountComplete) {
+          onCountComplete(targetAmount);
+        }
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
     const animationTimer = setTimeout(() => {
         setShow(false);
         setTimeout(onAnimationComplete, 500);
@@ -53,8 +84,9 @@ export function WinAnimation({ feedback, onAnimationComplete }: WinAnimationProp
     return () => {
       clearTimeout(showTimer);
       clearTimeout(animationTimer);
+      cancelAnimationFrame(animationFrameId);
     }
-  }, [feedback, onAnimationComplete]);
+  }, [feedback, onAnimationComplete, onCountComplete]);
   
   const handleCoinEnd = (id: number) => {
     setCoins(prev => prev.filter(cId => cId !== id));
@@ -68,9 +100,12 @@ export function WinAnimation({ feedback, onAnimationComplete }: WinAnimationProp
       </div>
       <div className="absolute inset-0 flex items-center justify-center p-4">
         <div className="bg-black/70 p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl shadow-2xl border-2 border-accent max-w-[90%] sm:max-w-md text-center animate-fade-in-scale">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-headline text-accent drop-shadow-lg leading-tight">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-headline text-accent drop-shadow-lg leading-tight mb-2">
                 {feedback.feedbackText}
             </h2>
+            <p className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-yellow-400 drop-shadow-lg">
+                R {displayAmount.toFixed(2)}
+            </p>
         </div>
       </div>
        <style jsx>{`

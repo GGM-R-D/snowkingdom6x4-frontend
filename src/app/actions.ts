@@ -8,12 +8,14 @@ export interface WinningFeedbackEnhancementInput {
 
 export interface WinningFeedbackEnhancementOutput {
     feedbackText: string;
+    winAmount: number;
     animationType: string;
     soundEffect: string;
 }
 
 const DEFAULT_FEEDBACK = {
-    feedbackText: 'You won! Congratulations!',
+    feedbackText: 'You won!',
+    winAmount: 0,
     animationType: 'coins',
     soundEffect: 'cashJingle'
 };
@@ -41,7 +43,8 @@ export async function getWinningFeedback(input: WinningFeedbackEnhancementInput)
         const randomSound = SOUNDS[Math.floor(Math.random() * SOUNDS.length)];
         
         return {
-            feedbackText: `${randomMessage} You won R${input.winAmount}!`,
+            feedbackText: randomMessage,
+            winAmount: input.winAmount,
             animationType: randomAnimation,
             soundEffect: randomSound
         };
@@ -49,7 +52,8 @@ export async function getWinningFeedback(input: WinningFeedbackEnhancementInput)
         console.error("Error in getWinningFeedback:", error);
         return {
             ...DEFAULT_FEEDBACK,
-            feedbackText: `You won R${input.winAmount}! Congratulations!`
+            feedbackText: 'You won!',
+            winAmount: input.winAmount
         };
     }
 }
