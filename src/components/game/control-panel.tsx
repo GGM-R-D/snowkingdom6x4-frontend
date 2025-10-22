@@ -16,7 +16,11 @@ interface ControlPanelProps {
   freeSpinsRemaining: number;
   isFreeSpinsMode: boolean;
   freeSpinsActivated: boolean;
+<<<<<<< HEAD
   autoSpinEnabled: boolean;
+=======
+  isAutoSpin: boolean;
+>>>>>>> 5ce7875
   onToggleAutoSpin: () => void;
 }
 
@@ -43,7 +47,11 @@ export function ControlPanel({
   freeSpinsRemaining,
   isFreeSpinsMode,
   freeSpinsActivated,
+<<<<<<< HEAD
   autoSpinEnabled,
+=======
+  isAutoSpin,
+>>>>>>> 5ce7875
   onToggleAutoSpin,
 }: ControlPanelProps) {
 
@@ -93,6 +101,7 @@ export function ControlPanel({
                 )}
             </div>
 
+<<<<<<< HEAD
             {/* SPIN Button - Centered */}
             <div className="flex items-center justify-center gap-1 px-2">
                 <Button
@@ -130,6 +139,50 @@ export function ControlPanel({
                 >
                     {autoSpinEnabled ? 'AUTO ON' : 'AUTO OFF'}
                 </Button>
+=======
+            {/* SPIN and AUTO SPIN Buttons - Centered */}
+            <div className="flex flex-col items-center justify-center px-2">
+                <div className="flex items-center gap-2">
+                    {/* SPIN Button */}
+                    <Button
+                        onClick={onSpin}
+                        disabled={isButtonDisabled}
+                        className={`
+                            relative w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 text-xl sm:text-2xl font-headline rounded-full
+                            flex items-center justify-center
+                            text-white transition-all duration-300 ease-in-out
+                            shadow-xl transform active:scale-95
+                            ${isButtonDisabled 
+                                ? 'spin-button-disabled' 
+                                : 'spin-button-glow'
+                            }
+                        `}
+                    >
+                        {isSpinning ? (
+                            <RotateCw className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 animate-spin-slow text-white" />
+                        ) : (
+                            <span className={`${spinButtonTextStyle} font-bold`}>{spinButtonText}</span>
+                        )}
+                    </Button>
+                    
+                    {/* AUTO SPIN Button */}
+                    <Button
+                        onClick={onToggleAutoSpin}
+                        className={`
+                            relative w-12 h-12 sm:w-14 sm:h-14 md:w-20 md:h-20 text-sm sm:text-base md:text-lg font-headline rounded-full
+                            flex items-center justify-center
+                            text-white transition-all duration-300 ease-in-out
+                            shadow-xl transform active:scale-95
+                            ${isAutoSpin 
+                                ? 'spin-button-glow' 
+                                : 'auto-spin-disabled'
+                            }
+                        `}
+                    >
+                        <span className="font-bold">AUTO</span>
+                    </Button>
+                </div>
+>>>>>>> 5ce7875
             </div>
 
             {/* Win and Pay Table Section */}

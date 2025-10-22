@@ -193,6 +193,23 @@
     cursor: not-allowed;
 }
 
+.auto-spin-disabled {
+    background: rgba(0, 0, 0, 0.3); /* Dark, dimmed background */
+    border: 2px solid rgba(0, 255, 255, 0.2); /* Very subtle cyan border */
+    box-shadow: 
+        0 0 5px rgba(0, 255, 255, 0.1), /* Very subtle outer glow */
+        inset 0 0 5px rgba(0, 0, 0, 0.5); /* Dark inner shadow */
+    cursor: pointer;
+    opacity: 0.6; /* Dimmed appearance */
+}
+
+.auto-spin-disabled:hover {
+    opacity: 0.8; /* Slightly brighter on hover */
+    box-shadow: 
+        0 0 8px rgba(0, 255, 255, 0.2),
+        inset 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
 .cyan-text-glow {
     color: #00e5ff; /* Bright cyan */
     text-shadow: 0 0 8px rgba(0, 89, 255, 0.8), 0 0 15px rgba(0, 255, 255, 0.5); /* Stronger cyan glow */
