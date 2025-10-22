@@ -197,6 +197,17 @@ export function SlotMachine() {
 
   const isSpinning = useMemo(() => spinningReels.some(s => s), [spinningReels]);
 
+  // Stabilize win animation callbacks to prevent re-runs of child effects
+  const handleWinAnimationComplete = useCallback(() => {
+    setWinningFeedback(null);
+    // Don't clear winning lines - let them persist until next spin
+  }, []);
+
+  const handleWinCountComplete = useCallback((amount: number) => {
+    // Update control panel only when counting finishes
+    setLastWin(amount);
+  }, []);
+
   const handleIncreaseBet = () => {
     if (isFreeSpinsMode) return;
     playClickSound();
@@ -518,14 +529,8 @@ export function SlotMachine() {
       {winningFeedback && (
         <WinAnimation
           feedback={winningFeedback}
-          onAnimationComplete={() => {
-            setWinningFeedback(null);
-            // Don't clear winning lines - let them persist until next spin
-          }}
-          onCountComplete={(amount) => {
-            // Update control panel only when counting finishes
-            setLastWin(amount);
-          }}
+          onAnimationComplete={handleWinAnimationComplete}
+          onCountComplete={handleWinCountComplete}
         />
       )}
     </div>
