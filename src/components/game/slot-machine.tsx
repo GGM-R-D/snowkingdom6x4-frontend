@@ -136,6 +136,7 @@ export function SlotMachine() {
 
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [isAutoSpin, setIsAutoSpin] = useState(false);
   const isFreeSpinsMode = useMemo(() => freeSpinsRemaining > 0, [freeSpinsRemaining]);
 
   const soundConfig = {
@@ -207,6 +208,11 @@ export function SlotMachine() {
     const currentIndex = BET_AMOUNTS.indexOf(betAmount);
     const prevIndex = currentIndex > 0 ? currentIndex - 1 : BET_AMOUNTS.length - 1;
     setBetAmount(BET_AMOUNTS[prevIndex]);
+  };
+
+  const handleToggleAutoSpin = () => {
+    playClickSound();
+    setIsAutoSpin(prev => !prev);
   };
 
       const spin = useCallback(async () => {
@@ -366,15 +372,33 @@ export function SlotMachine() {
           }
       }, [isSpinning, balance, betAmount, freeSpinsRemaining, toast, playSpinSound, stopSpinSound, playReelStopSound, playWinSound, playBigWinSound, playFreeSpinsTriggerSound, sessionId]);
         
-      useEffect(() => {
-    // Only run auto-spins if the feature has been activated by the user
-    if (freeSpinsRemaining > 0 && freeSpinsActivated && !isSpinning) {
+       useEffect(() => {
+     // Only run auto-spins if the feature has been activated by the user
+     if (freeSpinsRemaining > 0 && freeSpinsActivated && !isSpinning) {
+       const timer = setTimeout(() => {
+         spin();
+       }, 2000); // 2-second delay between auto-spins
+       return () => clearTimeout(timer);
+     }
+   }, [freeSpinsRemaining, freeSpinsActivated, isSpinning, spin]);
+
+  // Auto spin logic - similar to free spins but for regular gameplay
+  useEffect(() => {
+    // Only run auto-spins if auto spin is enabled and not in free spins mode
+    if (isAutoSpin && !isFreeSpinsMode && !isSpinning && balance >= betAmount) {
       const timer = setTimeout(() => {
         spin();
       }, 2000); // 2-second delay between auto-spins
       return () => clearTimeout(timer);
     }
-  }, [freeSpinsRemaining, freeSpinsActivated, isSpinning, spin]);
+  }, [isAutoSpin, isFreeSpinsMode, isSpinning, balance, betAmount, spin]);
+
+  // Disable auto spin when balance is insufficient or when free spins are triggered
+  useEffect(() => {
+    if (isAutoSpin && (balance < betAmount || isFreeSpinsMode)) {
+      setIsAutoSpin(false);
+    }
+  }, [isAutoSpin, balance, betAmount, isFreeSpinsMode]);
 
   // Add this new useEffect
       useEffect(() => {
@@ -448,18 +472,20 @@ export function SlotMachine() {
         </div>
       </div>
 
-      <ControlPanel
-        betAmount={betAmount}
-        balance={balance}
-        lastWin={lastWin}
-        isSpinning={isSpinning}
-        onSpin={spin}
-        onIncreaseBet={handleIncreaseBet}
-        onDecreaseBet={handleDecreaseBet}
-        freeSpinsRemaining={freeSpinsRemaining}
-        isFreeSpinsMode={isFreeSpinsMode}
-        freeSpinsActivated={freeSpinsActivated}
-      />
+       <ControlPanel
+         betAmount={betAmount}
+         balance={balance}
+         lastWin={lastWin}
+         isSpinning={isSpinning}
+         onSpin={spin}
+         onIncreaseBet={handleIncreaseBet}
+         onDecreaseBet={handleDecreaseBet}
+         freeSpinsRemaining={freeSpinsRemaining}
+         isFreeSpinsMode={isFreeSpinsMode}
+         freeSpinsActivated={freeSpinsActivated}
+         isAutoSpin={isAutoSpin}
+         onToggleAutoSpin={handleToggleAutoSpin}
+       />
 
       {winningFeedback && (
         <WinAnimation
