@@ -50,7 +50,7 @@ export function SymbolDisplay({ symbolId, className, winningLineIndices = [] }: 
         <ImageSequenceAnimation
           symbolId={symbolId}
           isPlaying={isWinning}
-          duration={1.5}
+          duration={5}
           className="absolute inset-0"
         />
       )}

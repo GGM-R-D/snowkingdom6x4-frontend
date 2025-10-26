@@ -10,13 +10,14 @@ import { Button } from '@/components/ui/button';
 import { PAYLINES, SYMBOLS, type SymbolId } from '@/lib/slot-config';
 import { SymbolDisplay } from './symbol-display';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { Menu } from 'lucide-react';
 
 export function PayTableDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="secondary" className="text-sm sm:text-lg md:text-xl font-bold text-cyan-300 font-mono drop-shadow-[0_0_5px_rgba(0,255,255,0.7)] px-1 ">
-          Pay Table
+        <Button variant="secondary" className="rounded-full w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 p-1 bg-black/30 hover:bg-black/50 transition-colors">
+          <Menu className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
         </Button>
       </DialogTrigger>
       <DialogContent className="w-[95vw] max-w-4xl h-[90vh] max-h-[90vh] bg-background/95 backdrop-blur-sm p-0 flex flex-col overflow-hidden">

@@ -34,22 +34,26 @@ export function ImageSequenceAnimation({
     // Convert 0-71 range to 1-72 range
     const adjustedFrame = frame + 1;
     
+    // Debug: Log every 10th frame to see progression
+    if (adjustedFrame % 10 === 0 || adjustedFrame <= 5) {
+      console.log(`${symbolId}: Frame ${adjustedFrame}, elapsed: ${elapsed.toFixed(2)}s, progress: ${progress.toFixed(3)}`);
+    }
+    
     setCurrentFrame(adjustedFrame);
     
-    // Continue animating as long as isPlaying is true
-    if (isPlaying) {
-      animationRef.current = requestAnimationFrame(animate);
-    }
-  }, [isPlaying, duration]);
+    // Continue animating - don't check isPlaying here to avoid recreation
+    animationRef.current = requestAnimationFrame(animate);
+  }, [duration, symbolId]);
   
   useEffect(() => {
     if (isPlaying && !isAnimating) {
+      console.log(`${symbolId}: Starting animation`);
       setIsAnimating(true);
-      setCurrentFrame(1); // Start with frame 1, not 0
+      setCurrentFrame(1);
       startTimeRef.current = performance.now();
       animationRef.current = requestAnimationFrame(animate);
     } else if (!isPlaying && isAnimating) {
-      // Stop animation if isPlaying becomes false
+      console.log(`${symbolId}: Stopping animation`);
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
@@ -62,7 +66,7 @@ export function ImageSequenceAnimation({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isPlaying, isAnimating, animate]);
+  }, [isPlaying, symbolId]);
   
   // Generate the image path for the current frame
   const getImagePath = (frame: number) => {
@@ -99,15 +103,15 @@ export function ImageSequenceAnimation({
   
   return (
     <div className={`absolute inset-0 z-20 ${className}`}>
-      <Image
-        key={`${symbolId}-${currentFrame}`}
-        src={getImagePath(currentFrame)}
-        alt={`${symbolId} animation frame ${currentFrame}`}
-        fill
-        className="object-cover"
-        unoptimized
-        priority
-      />
+        <Image
+          key={`${symbolId}-${currentFrame}`}
+          src={getImagePath(currentFrame)}
+          alt={`${symbolId} animation frame ${currentFrame}`}
+          fill
+          className="object-cover"
+          unoptimized
+          priority
+        />
     </div>
   );
 }

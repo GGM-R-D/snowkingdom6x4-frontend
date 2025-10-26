@@ -13,8 +13,6 @@ import useSound from 'use-sound';
 import { SOUNDS } from '@/lib/sounds';
 import { cn } from '@/lib/utils';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
-import { Button } from '@/components/ui/button';
-import { Volume2, VolumeX } from 'lucide-react';
 
 // Types for API communication
 type SymbolId = 
@@ -491,21 +489,6 @@ export function SlotMachine() {
   return (
     <>
     <div className="flex flex-col items-center gap-2 md:gap-4 p-2 md:p-4 rounded-2xl bg-card/50 border-2 md:border-4 border-primary/50 shadow-2xl w-full max-w-6xl relative">
-      <div className="absolute top-2 right-2 z-10">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleMute}
-          className="rounded-full w-10 h-10 p-2 bg-black/50 hover:bg-black/70 transition-colors"
-          aria-label={isMuted ? "Unmute" : "Mute"}
-        >
-          {isMuted ? (
-            <VolumeX className="w-6 h-6 text-white" />
-          ) : (
-            <Volume2 className="w-6 h-6 text-white" />
-          )}
-        </Button>
-      </div>
       <h1 className="text-3xl sm:text-4xl md:text-6xl font-headline text-accent tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
         FROSTY FORTUNES
       </h1>
@@ -544,6 +527,8 @@ export function SlotMachine() {
          onToggleAutoSpin={handleToggleAutoSpin}
          isTurboMode={isTurboMode}
          onToggleTurbo={handleToggleTurbo}
+         isMuted={isMuted}
+         onToggleMute={toggleMute}
        />
 
       {winningFeedback && (

@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PayTableDialog } from "./pay-table-dialog";
-import { Plus, Minus, RotateCw, BookOpen } from "lucide-react";
+import { Plus, Minus, RotateCw, BookOpen, Volume2, VolumeX } from "lucide-react";
 import { useMemo } from 'react';
 import {cn} from '@/lib/utils';
+import Image from 'next/image';
 
 interface ControlPanelProps {
   betAmount: number;
@@ -20,6 +21,8 @@ interface ControlPanelProps {
   onToggleAutoSpin: () => void;
   isTurboMode: boolean;
   onToggleTurbo: () => void;
+  isMuted: boolean;
+  onToggleMute: () => void;
 }
 
 const InfoDisplay = ({ label, value, isCurrency = true }: { label: string; value: number | string; isCurrency?: boolean }) => (
@@ -49,6 +52,8 @@ export function ControlPanel({
   onToggleAutoSpin,
   isTurboMode,
   onToggleTurbo,
+  isMuted,
+  onToggleMute,
 }: ControlPanelProps) {
 
     const spinButtonText = useMemo(() => {
@@ -104,17 +109,23 @@ export function ControlPanel({
                     <Button
                         onClick={onToggleTurbo}
                         className={`
-                            relative w-12 h-12 sm:w-14 sm:h-14 md:w-20 md:h-20 text-[10px] sm:text-xs md:text-sm font-headline rounded-full
-                            flex items-center justify-center
+                            relative w-12 h-12 sm:w-14 sm:h-14 md:w-20 md:h-20 rounded-full
+                            flex items-center justify-center p-0
                             text-white transition-all duration-300 ease-in-out
                             shadow-xl transform active:scale-95
                             ${isTurboMode 
-                                ? 'spin-button-glow' 
-                                : 'auto-spin-disabled'
+                                ? 'opacity-80' 
+                                : 'hover:scale-105'
                             }
                         `}
                     >
-                        <span className="font-bold">TURBO</span>
+                        <Image
+                            src="/Control_Panel/turbo.png"
+                            alt="Turbo Button"
+                            fill
+                            className="object-cover rounded-full"
+                            unoptimized
+                        />
                     </Button>
                     
                     {/* SPIN Button */}
@@ -122,20 +133,26 @@ export function ControlPanel({
                         onClick={onSpin}
                         disabled={isButtonDisabled}
                         className={`
-                            relative w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 text-xl sm:text-2xl font-headline rounded-full
-                            flex items-center justify-center
-                            text-white transition-all duration-300 ease-in-out
+                            relative w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 rounded-full
+                            flex items-center justify-center p-0
+                            transition-all duration-300 ease-in-out
                             shadow-xl transform active:scale-95
                             ${isButtonDisabled 
-                                ? 'spin-button-disabled' 
-                                : 'spin-button-glow'
+                                ? 'opacity-50 cursor-not-allowed' 
+                                : 'hover:scale-105'
                             }
                         `}
                     >
                         {isSpinning ? (
-                            <RotateCw className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 animate-spin-slow text-white" />
+                            <RotateCw className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 animate-spin-slow text-white absolute z-10" />
                         ) : (
-                            <span className={`${spinButtonTextStyle} font-bold`}>{spinButtonText}</span>
+                            <Image
+                                src="/Control_Panel/spin_btn.png"
+                                alt="Spin Button"
+                                fill
+                                className="object-cover rounded-full"
+                                unoptimized
+                            />
                         )}
                     </Button>
                     
@@ -143,17 +160,23 @@ export function ControlPanel({
                     <Button
                         onClick={onToggleAutoSpin}
                         className={`
-                            relative w-12 h-12 sm:w-14 sm:h-14 md:w-20 md:h-20 text-[10px] sm:text-xs md:text-sm font-headline rounded-full
-                            flex items-center justify-center
+                            relative w-12 h-12 sm:w-14 sm:h-14 md:w-20 md:h-20 rounded-full
+                            flex items-center justify-center p-0
                             text-white transition-all duration-300 ease-in-out
                             shadow-xl transform active:scale-95
                             ${isAutoSpin 
-                                ? 'spin-button-glow' 
-                                : 'auto-spin-disabled'
+                                ? 'opacity-80' 
+                                : 'hover:scale-105'
                             }
                         `}
                     >
-                        <span className="font-bold">AUTO</span>
+                        <Image
+                            src="/Control_Panel/auto_spin.png"
+                            alt="Auto Spin Button"
+                            fill
+                            className="object-cover rounded-full"
+                            unoptimized
+                        />
                     </Button>
                 </div>
             </div>
@@ -161,8 +184,21 @@ export function ControlPanel({
             {/* Win and Pay Table Section (hidden on mobile, shown from sm and up) */}
             <div className="hidden sm:flex flex-col gap-1 flex-1">
                 <InfoDisplay label="Win" value={lastWin.toFixed(2)} />
-                <div className="flex flex-col items-center justify-center p-1 rounded-md w-full text-center min-h-[48px] sm:min-h-[60px] md:min-h-[80px] info-display-bg">
+                <div className="flex items-center justify-center gap-2 p-1 rounded-md w-full text-center min-h-[48px] sm:min-h-[60px] md:min-h-[80px] info-display-bg">
                     <PayTableDialog />
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={onToggleMute}
+                        className="rounded-full w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 p-1 bg-black/30 hover:bg-black/50 transition-colors"
+                        aria-label={isMuted ? "Unmute" : "Mute"}
+                    >
+                        {isMuted ? (
+                            <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
+                        ) : (
+                            <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
+                        )}
+                    </Button>
                 </div>
             </div>
         </div>
@@ -173,8 +209,21 @@ export function ControlPanel({
                 <InfoDisplay label="Win" value={lastWin.toFixed(2)} />
             </div>
             <div className="col-span-1 flex justify-center">
-                <div className="flex flex-col items-center justify-center p-1 rounded-md w-full text-center min-h-[48px] info-display-bg">
+                <div className="flex items-center justify-center gap-2 p-1 rounded-md w-full text-center min-h-[48px] info-display-bg">
                     <PayTableDialog />
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={onToggleMute}
+                        className="rounded-full w-6 h-6 p-1 bg-black/30 hover:bg-black/50 transition-colors"
+                        aria-label={isMuted ? "Unmute" : "Mute"}
+                    >
+                        {isMuted ? (
+                            <VolumeX className="w-3 h-3 text-white" />
+                        ) : (
+                            <Volume2 className="w-3 h-3 text-white" />
+                        )}
+                    </Button>
                 </div>
             </div>
         </div>
