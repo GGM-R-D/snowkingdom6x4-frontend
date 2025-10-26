@@ -488,11 +488,12 @@ export function SlotMachine() {
 
   return (
     <>
-    <div className="flex flex-col items-center gap-2 md:gap-4 p-2 md:p-4 rounded-2xl bg-card/50 border-2 md:border-4 border-primary/50 shadow-2xl w-full max-w-6xl relative">
-      <h1 className="text-3xl sm:text-4xl md:text-6xl font-headline text-accent tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
+    <div className="flex flex-col items-center justify-start py-2">
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-headline text-accent tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] mb-1">
         FROSTY FORTUNES
       </h1>
 
+      <div className="flex flex-col items-center gap-1 p-1 rounded-2xl bg-card/50 border-2 md:border-4 border-primary/50 shadow-2xl w-full max-w-6xl relative mb-1">
       <div className="relative w-full flex justify-center">
         <div className="grid grid-cols-6 gap-2 p-2 bg-black/30 rounded-lg relative">
           {Array.from({ length: NUM_REELS }).map((_, i) => (
@@ -512,25 +513,6 @@ export function SlotMachine() {
         </div>
       </div>
 
-       <ControlPanel
-         betAmount={betAmount}
-         balance={balance}
-         lastWin={lastWin}
-         isSpinning={isSpinning}
-         onSpin={spin}
-         onIncreaseBet={handleIncreaseBet}
-         onDecreaseBet={handleDecreaseBet}
-         freeSpinsRemaining={freeSpinsRemaining}
-         isFreeSpinsMode={isFreeSpinsMode}
-         freeSpinsActivated={freeSpinsActivated}
-         isAutoSpin={isAutoSpin}
-         onToggleAutoSpin={handleToggleAutoSpin}
-         isTurboMode={isTurboMode}
-         onToggleTurbo={handleToggleTurbo}
-         isMuted={isMuted}
-         onToggleMute={toggleMute}
-       />
-
       {winningFeedback && (
         <WinAnimation
           feedback={winningFeedback}
@@ -538,13 +520,34 @@ export function SlotMachine() {
           onCountComplete={handleWinCountComplete}
         />
       )}
+      </div>
     </div>
-      {showFreeSpinsOverlay.show && (
-        <FreeSpinsOverlay
-          count={showFreeSpinsOverlay.count}
-          onClose={() => setShowFreeSpinsOverlay({ show: false, count: 0 })}
-        />
-      )}
+
+    <ControlPanel
+      betAmount={betAmount}
+      balance={balance}
+      lastWin={lastWin}
+      isSpinning={isSpinning}
+      onSpin={spin}
+      onIncreaseBet={handleIncreaseBet}
+      onDecreaseBet={handleDecreaseBet}
+      freeSpinsRemaining={freeSpinsRemaining}
+      isFreeSpinsMode={isFreeSpinsMode}
+      freeSpinsActivated={freeSpinsActivated}
+      isAutoSpin={isAutoSpin}
+      onToggleAutoSpin={handleToggleAutoSpin}
+      isTurboMode={isTurboMode}
+      onToggleTurbo={handleToggleTurbo}
+      isMuted={isMuted}
+      onToggleMute={toggleMute}
+    />
+
+    {showFreeSpinsOverlay.show && (
+      <FreeSpinsOverlay
+        count={showFreeSpinsOverlay.count}
+        onClose={() => setShowFreeSpinsOverlay({ show: false, count: 0 })}
+      />
+    )}
     </>
   );
 }
