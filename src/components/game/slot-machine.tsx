@@ -8,6 +8,8 @@ import { ControlPanel } from './control-panel';
 import { WinAnimation } from './win-animation';
 import { FreeSpinsOverlay } from './free-spins-overlay';
 import { WinningLinesDisplay } from './winning-lines-display';
+import { AutoplayDialog } from './autoplay-dialog';
+import { PaylineNumbers } from './payline-numbers';
 import { useToast } from '@/hooks/use-toast';
 import useSound from 'use-sound';
 import { SOUNDS } from '@/lib/sounds';
@@ -52,6 +54,23 @@ type PlayResponse = {
     results: SpinResult;
   };
   freeSpins: number;
+};
+
+// Autoplay types
+type AutoplaySettings = {
+  numberOfSpins: number;
+  stopOnAnyWin: boolean;
+  stopOnSingleWinExceeds: number;
+  stopOnFeature: boolean;
+  stopOnTotalLossExceeds: number;
+};
+
+type AutoplayState = {
+  isActive: boolean;
+  settings: AutoplaySettings | null;
+  spinsRemaining: number;
+  totalLoss: number;
+  originalBalance: number;
 };
 
 // Reel strips for spinning animation (from original game)
@@ -139,6 +158,16 @@ export function SlotMachine() {
   const [isAutoSpin, setIsAutoSpin] = useState(false);
   const [isTurboMode, setIsTurboMode] = useState(false);
   const [bouncingReels, setBouncingReels] = useState<boolean[]>(Array(NUM_REELS).fill(false));
+  
+  // Autoplay state
+  const [autoplayState, setAutoplayState] = useState<AutoplayState>({
+    isActive: false,
+    settings: null,
+    spinsRemaining: 0,
+    totalLoss: 0,
+    originalBalance: 0,
+  });
+  const [showAutoplayDialog, setShowAutoplayDialog] = useState(false);
   const isFreeSpinsMode = useMemo(() => freeSpinsRemaining > 0, [freeSpinsRemaining]);
 
   const soundConfig = {
@@ -231,6 +260,66 @@ export function SlotMachine() {
   const handleToggleTurbo = () => {
     playClickSound();
     setIsTurboMode(prev => !prev);
+  };
+
+  // Autoplay functions
+  const startAutoplay = (settings: AutoplaySettings) => {
+    setAutoplayState({
+      isActive: true,
+      settings,
+      spinsRemaining: settings.numberOfSpins,
+      totalLoss: 0,
+      originalBalance: balance,
+    });
+    setIsAutoSpin(true);
+    toast({
+      title: "Autoplay Started",
+      description: `${settings.numberOfSpins} spins will be executed automatically.`,
+    });
+  };
+
+  const stopAutoplay = () => {
+    setAutoplayState({
+      isActive: false,
+      settings: null,
+      spinsRemaining: 0,
+      totalLoss: 0,
+      originalBalance: 0,
+    });
+    setIsAutoSpin(false);
+    toast({
+      title: "Autoplay Stopped",
+      description: "Automatic spinning has been stopped.",
+    });
+  };
+
+  const checkAutoplayStopConditions = (spinResult: SpinResult): boolean => {
+    if (!autoplayState.isActive || !autoplayState.settings) return false;
+    
+    const { settings } = autoplayState;
+    
+    // Stop if any win and setting is enabled
+    if (settings.stopOnAnyWin && spinResult.totalWin > 0) {
+      return true;
+    }
+    
+    // Stop if single win exceeds threshold
+    if (spinResult.totalWin > settings.stopOnSingleWinExceeds) {
+      return true;
+    }
+    
+    // Stop on feature (free spins)
+    if (settings.stopOnFeature && spinResult.scatterWin.triggeredFreeSpins) {
+      return true;
+    }
+    
+    // Stop if total loss exceeds threshold
+    const currentLoss = autoplayState.originalBalance - balance;
+    if (currentLoss > settings.stopOnTotalLossExceeds) {
+      return true;
+    }
+    
+    return false;
   };
 
       const spin = useCallback(async () => {
@@ -410,6 +499,9 @@ export function SlotMachine() {
                   setWinningFeedback(feedback);
               }
 
+              // Return spin result for autoplay logic
+              return data.game.results;
+
           } catch (error) {
               console.error("Failed to fetch spin result:", error);
               toast({
@@ -419,8 +511,38 @@ export function SlotMachine() {
               });
               setSpinningReels(Array(NUM_REELS).fill(false));
               stopSpinSound();
+              return null; // Return null for failed spins
           }
       }, [isSpinning, balance, betAmount, freeSpinsRemaining, toast, playSpinSound, stopSpinSound, playReelStopSound, playWinSound, playBigWinSound, playFreeSpinsTriggerSound, sessionId, isTurboMode]);
+        
+  // Autoplay effect - handles automatic spinning with stop conditions
+  useEffect(() => {
+    if (!autoplayState.isActive || !autoplayState.settings) return;
+    
+    if (autoplayState.spinsRemaining <= 0) {
+      stopAutoplay();
+      return;
+    }
+    
+    if (!isSpinning && !winningFeedback) {
+      const timer = setTimeout(() => {
+        spin().then((spinResult) => {
+          if (spinResult && checkAutoplayStopConditions(spinResult)) {
+            stopAutoplay();
+            return;
+          }
+          
+          // Decrement spins remaining
+          setAutoplayState(prev => ({
+            ...prev,
+            spinsRemaining: prev.spinsRemaining - 1,
+          }));
+        });
+      }, 1000); // 1 second delay between spins
+      
+      return () => clearTimeout(timer);
+    }
+  }, [autoplayState, isSpinning, winningFeedback, spin]);
         
        useEffect(() => {
      // Only run auto-spins if the feature has been activated by the user
@@ -489,28 +611,34 @@ export function SlotMachine() {
   return (
     <>
     <div className="flex flex-col items-center justify-start py-2">
-      <h1 className="text-xl sm:text-2xl md:text-3xl font-headline text-accent tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] mb-1">
+      <h1 className="frosted-title text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-headline uppercase tracking-wider font-bold leading-tight mb-1 w-full max-w-6xl text-center">
         FROSTY FORTUNES
       </h1>
 
       <div className="flex flex-col items-center gap-1 p-1 rounded-2xl bg-card/50 border-2 md:border-4 border-primary/50 shadow-2xl w-full max-w-6xl relative mb-1">
       <div className="relative w-full flex justify-center">
-        <div className="grid grid-cols-6 gap-2 p-2 bg-black/30 rounded-lg relative">
-          {Array.from({ length: NUM_REELS }).map((_, i) => (
-            <ReelColumn
-              key={i}
-              symbols={getReelSymbols(i)}
-              isSpinning={spinningReels[i]}
-              reelIndex={i}
-              winningLineIndicesForColumn={
-                Array(NUM_ROWS).fill(0).map((_, j) => getWinningLineIndices(i, j))
-              }
-              isTurboMode={isTurboMode}
-              shouldBounce={bouncingReels[i]}
-            />
-          ))}
-          {!isSpinning && winningLines.length > 0 && <WinningLinesDisplay winningLines={winningLines.filter(l => l.paylineIndex !== -1)} />}
-        </div>
+        <PaylineNumbers 
+          winningLines={winningLines} 
+          isSpinning={isSpinning}
+        >
+          <div className="grid grid-cols-6 gap-px p-2 bg-black/30 rounded-lg relative">
+            {Array.from({ length: NUM_REELS }).map((_, i) => (
+              <ReelColumn
+                key={i}
+                symbols={getReelSymbols(i)}
+                isSpinning={spinningReels[i]}
+                reelIndex={i}
+                winningLineIndicesForColumn={
+                  Array(NUM_ROWS).fill(0).map((_, j) => getWinningLineIndices(i, j))
+                }
+                isTurboMode={isTurboMode}
+                shouldBounce={bouncingReels[i]}
+              />
+            ))}
+            
+            {!isSpinning && winningLines.length > 0 && <WinningLinesDisplay winningLines={winningLines.filter(l => l.paylineIndex !== -1)} />}
+          </div>
+        </PaylineNumbers>
       </div>
 
       {winningFeedback && (
@@ -540,6 +668,10 @@ export function SlotMachine() {
       onToggleTurbo={handleToggleTurbo}
       isMuted={isMuted}
       onToggleMute={toggleMute}
+      autoplayState={autoplayState}
+      onStartAutoplay={startAutoplay}
+      onStopAutoplay={stopAutoplay}
+      onShowAutoplayDialog={() => setShowAutoplayDialog(true)}
     />
 
     {showFreeSpinsOverlay.show && (
@@ -548,6 +680,14 @@ export function SlotMachine() {
         onClose={() => setShowFreeSpinsOverlay({ show: false, count: 0 })}
       />
     )}
+
+    <AutoplayDialog
+      isOpen={showAutoplayDialog}
+      onClose={() => setShowAutoplayDialog(false)}
+      onStartAutoplay={startAutoplay}
+      currentBalance={balance}
+      currentBet={betAmount}
+    />
     </>
   );
 }

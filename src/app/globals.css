@@ -242,4 +242,19 @@
   to { transform: rotate(360deg); }
 }
 
+/* Frosted title styling */
+.frosted-title {
+  background: linear-gradient(180deg, #aaffff 0%, #44ddff 50%, #00aaff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 
+    0 0 20px rgba(0, 221, 255, 0.8),
+    0 0 40px rgba(0, 221, 255, 0.6),
+    0 0 60px rgba(0, 221, 255, 0.4),
+    2px 2px 4px rgba(0, 51, 153, 0.8),
+    3px 3px 6px rgba(0, 34, 102, 0.6);
+  filter: drop-shadow(0 0 10px rgba(0, 221, 255, 0.8)) drop-shadow(0 0 20px rgba(0, 221, 255, 0.6));
+}
+
 

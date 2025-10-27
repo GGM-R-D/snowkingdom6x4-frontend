@@ -13,52 +13,58 @@ interface ImageSequenceAnimationProps {
 export function ImageSequenceAnimation({ 
   symbolId, 
   isPlaying, 
-  duration = 1.5, 
+  duration = 3, 
   className 
 }: ImageSequenceAnimationProps) {
-  const [currentFrame, setCurrentFrame] = useState(0);
+  const [currentFrame, setCurrentFrame] = useState(1);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const animationRef = useRef<number>();
   const startTimeRef = useRef<number>();
+  const lastFrameRef = useRef<number>(0);
   
   const totalFrames = 72;
-  const fps = 24; // 24 frames per second for 3-second duration
   
   const animate = useCallback((currentTime: number) => {
-    if (!startTimeRef.current) return;
+    if (!startTimeRef.current || !isPlaying) return;
     
-    const elapsed = (currentTime - startTimeRef.current) / 1000; // Convert to seconds
-    const progress = (elapsed / duration) % 1; // Use modulo to loop continuously
+    const elapsed = (currentTime - startTimeRef.current) / 1000;
+    const progress = (elapsed / duration) % 1;
     const frame = Math.floor(progress * totalFrames);
+    const adjustedFrame = Math.max(1, Math.min(frame + 1, totalFrames));
     
-    // Convert 0-71 range to 1-72 range
-    const adjustedFrame = frame + 1;
-    
-    // Debug: Log every 10th frame to see progression
-    if (adjustedFrame % 10 === 0 || adjustedFrame <= 5) {
-      console.log(`${symbolId}: Frame ${adjustedFrame}, elapsed: ${elapsed.toFixed(2)}s, progress: ${progress.toFixed(3)}`);
+    // Only update if frame actually changed to prevent unnecessary re-renders
+    if (adjustedFrame !== lastFrameRef.current) {
+      setCurrentFrame(adjustedFrame);
+      lastFrameRef.current = adjustedFrame;
     }
     
-    setCurrentFrame(adjustedFrame);
-    
-    // Continue animating - don't check isPlaying here to avoid recreation
-    animationRef.current = requestAnimationFrame(animate);
-  }, [duration, symbolId]);
+    if (isPlaying) {
+      animationRef.current = requestAnimationFrame(animate);
+    }
+  }, [duration, isPlaying]);
   
   useEffect(() => {
     if (isPlaying && !isAnimating) {
-      console.log(`${symbolId}: Starting animation`);
       setIsAnimating(true);
+      setIsReady(false);
       setCurrentFrame(1);
-      startTimeRef.current = performance.now();
-      animationRef.current = requestAnimationFrame(animate);
+      lastFrameRef.current = 1;
+      
+      // Small delay to ensure smooth start
+      setTimeout(() => {
+        startTimeRef.current = performance.now();
+        setIsReady(true);
+        animationRef.current = requestAnimationFrame(animate);
+      }, 16); // One frame delay
     } else if (!isPlaying && isAnimating) {
-      console.log(`${symbolId}: Stopping animation`);
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
       setIsAnimating(false);
+      setIsReady(false);
       setCurrentFrame(0);
+      lastFrameRef.current = 0;
     }
     
     return () => {
@@ -66,12 +72,11 @@ export function ImageSequenceAnimation({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isPlaying, symbolId]);
+  }, [isPlaying, animate]);
   
   // Generate the image path for the current frame
   const getImagePath = (frame: number) => {
-    // Frame numbers start from 1, not 0, and don't need padding
-    const frameNumber = frame;
+    const frameNumber = Math.max(1, Math.min(frame, totalFrames));
     
     // Map symbol IDs to their correct folder names
     const getFolderName = (id: string) => {
@@ -97,7 +102,7 @@ export function ImageSequenceAnimation({
     return `/animations/${folderName}/${folderName}_${frameNumber}.png`;
   };
   
-  if (!isPlaying || !isAnimating) {
+  if (!isPlaying || !isAnimating || !isReady) {
     return null;
   }
   
@@ -111,6 +116,7 @@ export function ImageSequenceAnimation({
           className="object-cover"
           unoptimized
           priority
+          quality={90}
         />
     </div>
   );

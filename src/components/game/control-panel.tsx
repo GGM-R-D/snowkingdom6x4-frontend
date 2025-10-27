@@ -23,15 +23,35 @@ interface ControlPanelProps {
   onToggleTurbo: () => void;
   isMuted: boolean;
   onToggleMute: () => void;
+  autoplayState: {
+    isActive: boolean;
+    settings: any;
+    spinsRemaining: number;
+    totalLoss: number;
+    originalBalance: number;
+  };
+  onStartAutoplay: (settings: any) => void;
+  onStopAutoplay: () => void;
+  onShowAutoplayDialog: () => void;
 }
 
 const InfoDisplay = ({ label, value, isCurrency = true }: { label: string; value: number | string; isCurrency?: boolean }) => (
     // Applied info-display-bg class for the new background, border, and shadows
-    <div className="flex flex-col items-center justify-center p-1 rounded-md text-center min-h-[48px] sm:min-h-[60px] md:min-h-[80px] info-display-bg w-24 sm:w-28 md:w-32">
+    <div className="flex flex-col items-center justify-center p-1 rounded-md text-center min-h-[48px] sm:min-h-[60px] md:min-h-[80px] info-display-bg flex-1 min-w-[120px]">
         {/* Applied subtle-cyan-text for the new label styling */}
         <span className="text-[8px] sm:text-[9px] md:text-[10px] uppercase font-mono tracking-widest subtle-cyan-text">{label}</span>
         {/* Applied cyan-text-glow for the new value styling */}
         <span className="text-sm sm:text-base md:text-lg font-bold font-mono cyan-text-glow">
+            {isCurrency ? `R ${value}` : value}
+        </span>
+    </div>
+);
+
+// Mobile-specific InfoDisplay with full width
+const MobileInfoDisplay = ({ label, value, isCurrency = true }: { label: string; value: number | string; isCurrency?: boolean }) => (
+    <div className="flex flex-col items-center justify-center p-1 rounded-md w-full text-center min-h-[48px] info-display-bg">
+        <span className="text-[8px] uppercase font-mono tracking-widest subtle-cyan-text">{label}</span>
+        <span className="text-sm font-bold font-mono cyan-text-glow">
             {isCurrency ? `R ${value}` : value}
         </span>
     </div>
@@ -54,6 +74,10 @@ export function ControlPanel({
   onToggleTurbo,
   isMuted,
   onToggleMute,
+  autoplayState,
+  onStartAutoplay,
+  onStopAutoplay,
+  onShowAutoplayDialog,
 }: ControlPanelProps) {
 
     const spinButtonText = useMemo(() => {
@@ -75,32 +99,32 @@ export function ControlPanel({
 
   return (
     // Applied control-panel-card class for the main card styling
-    <Card className="w-[125%] -mx-[12.5%] p-2 md:p-4 shadow-2xl control-panel-card sm:backdrop-blur">
+    <Card className="w-full sm:w-[125%] sm:-mx-[12.5%] p-2 md:p-4 shadow-2xl control-panel-card sm:backdrop-blur">
         {/* Desktop layout - single horizontal line */}
-        <div className="hidden sm:flex items-center justify-between gap-4">
+        <div className="hidden sm:flex items-center justify-between gap-2">
             {/* Balance */}
             <InfoDisplay label="Balance" value={balance.toFixed(2)} />
             
             {/* Bet */}
-            {!isFreeSpinsMode && (
-                <div className="flex flex-col items-center justify-center p-1 rounded-md text-center min-h-[60px] md:min-h-[80px] info-display-bg w-24 sm:w-28 md:w-32">
+                {!isFreeSpinsMode && (
+                <div className="flex flex-col items-center justify-center p-1 rounded-md text-center min-h-[60px] md:min-h-[80px] info-display-bg flex-1 min-w-[120px]">
                     <span className="text-[8px] sm:text-[9px] md:text-[10px] uppercase font-mono tracking-widest subtle-cyan-text">Bet</span>
-                    <div className="flex items-center gap-0.5 justify-center w-full mt-0.5">
+                        <div className="flex items-center gap-0.5 justify-center w-full mt-0.5">
                         <Button variant="ghost" size="icon" className="h-4 w-4 md:h-5 md:w-5 hover:text-cyan-200 bet-button-icon" onClick={onDecreaseBet} disabled={isSpinning}>
                             <Minus className="h-3 w-3 md:h-4 md:w-4" />
-                        </Button>
+                            </Button>
                         <span className="text-sm md:text-base font-bold font-mono px-1 cyan-text-glow">
-                            R {betAmount}
-                        </span>
+                                R {betAmount}
+                            </span>
                         <Button variant="ghost" size="icon" className="h-4 w-4 md:h-5 md:w-5 hover:text-cyan-200 bet-button-icon" onClick={onIncreaseBet} disabled={isSpinning}>
                             <Plus className="h-3 w-3 md:h-4 md:w-4" />
-                        </Button>
+                            </Button>
+                        </div>
                     </div>
-                </div>
-            )}
-            {isFreeSpinsMode && (
-                <InfoDisplay label="Free Spins" value={freeSpinsRemaining} isCurrency={false} />
-            )}
+                )}
+                {isFreeSpinsMode && (
+                    <InfoDisplay label="Free Spins" value={freeSpinsRemaining} isCurrency={false} />
+                )}
 
             {/* TURBO Button */}
             <Button
@@ -125,22 +149,22 @@ export function ControlPanel({
                 />
             </Button>
             
-            {/* SPIN Button */}
-            <Button
-                onClick={onSpin}
-                disabled={isButtonDisabled}
-                className={`
+                    {/* SPIN Button */}
+                    <Button
+                        onClick={onSpin}
+                        disabled={isButtonDisabled}
+                        className={`
                     relative w-20 h-20 md:w-28 md:h-28 rounded-full
                     flex items-center justify-center p-0
                     transition-all duration-300 ease-in-out
-                    shadow-xl transform active:scale-95
-                    ${isButtonDisabled 
+                            shadow-xl transform active:scale-95
+                            ${isButtonDisabled 
                         ? 'opacity-50 cursor-not-allowed' 
                         : 'hover:scale-105'
-                    }
-                `}
-            >
-                {isSpinning ? (
+                            }
+                        `}
+                    >
+                        {isSpinning ? (
                     <RotateCw className="w-12 h-12 md:w-16 md:h-16 animate-spin-slow text-white absolute z-10" />
                 ) : (
                     <Image
@@ -150,18 +174,18 @@ export function ControlPanel({
                         className="object-cover rounded-full"
                         unoptimized
                     />
-                )}
-            </Button>
-            
-            {/* AUTO SPIN Button */}
-            <Button
-                onClick={onToggleAutoSpin}
-                className={`
+                        )}
+                    </Button>
+                    
+                    {/* AUTO SPIN Button */}
+                    <Button
+                        onClick={autoplayState.isActive ? onStopAutoplay : onShowAutoplayDialog}
+                        className={`
                     relative w-14 h-14 md:w-20 md:h-20 rounded-full
                     flex items-center justify-center p-0
-                    text-white transition-all duration-300 ease-in-out
-                    shadow-xl transform active:scale-95
-                    ${isAutoSpin 
+                            text-white transition-all duration-300 ease-in-out
+                            shadow-xl transform active:scale-95
+                            ${autoplayState.isActive 
                         ? 'opacity-80' 
                         : 'hover:scale-105'
                     }
@@ -174,14 +198,14 @@ export function ControlPanel({
                     className="object-cover rounded-full"
                     unoptimized
                 />
-            </Button>
+                    </Button>
 
             {/* Win */}
-            <InfoDisplay label="Win" value={lastWin.toFixed(2)} />
+                <InfoDisplay label="Win" value={lastWin.toFixed(2)} />
             
             {/* Pay Table and Music */}
-            <div className="flex items-center justify-center gap-2 p-1 rounded-md text-center min-h-[60px] md:min-h-[80px] info-display-bg w-24 sm:w-28 md:w-32">
-                <PayTableDialog />
+            <div className="flex items-center justify-center gap-2 p-1 rounded-md text-center min-h-[60px] md:min-h-[80px] info-display-bg flex-1 min-w-[120px]">
+                    <PayTableDialog />
                 <Button
                     variant="ghost"
                     size="icon"
@@ -199,26 +223,136 @@ export function ControlPanel({
         </div>
 
         {/* Mobile layout - hidden on larger screens */}
-        <div className="grid grid-cols-2 sm:hidden gap-1 mt-1">
-            <div className="col-span-1 flex justify-center">
-                <InfoDisplay label="Win" value={lastWin.toFixed(2)} />
+        <div className="sm:hidden space-y-2 mt-2">
+            {/* Top row: Action buttons */}
+            <div className="flex items-center justify-center gap-3">
+                {/* TURBO Button */}
+                <Button
+                    onClick={onToggleTurbo}
+                    className={`
+                        relative w-12 h-12 rounded-full
+                        flex items-center justify-center p-0
+                        text-white transition-all duration-300 ease-in-out
+                        shadow-xl transform active:scale-95
+                        ${isTurboMode 
+                            ? 'opacity-80' 
+                            : 'hover:scale-105'
+                        }
+                    `}
+                >
+                    <Image
+                        src="/Control_Panel/turbo.png"
+                        alt="Turbo Button"
+                        fill
+                        className="object-cover rounded-full"
+                        unoptimized
+                    />
+                </Button>
+                
+                {/* SPIN Button */}
+                <Button
+                    onClick={onSpin}
+                    disabled={isButtonDisabled}
+                    className={`
+                        relative w-16 h-16 rounded-full
+                        flex items-center justify-center p-0
+                        transition-all duration-300 ease-in-out
+                        shadow-xl transform active:scale-95
+                        ${isButtonDisabled 
+                            ? 'opacity-50 cursor-not-allowed' 
+                            : 'hover:scale-105'
+                        }
+                    `}
+                >
+                    {isSpinning ? (
+                        <RotateCw className="w-8 h-8 animate-spin-slow text-white absolute z-10" />
+                    ) : (
+                        <Image
+                            src="/Control_Panel/spin_btn.png"
+                            alt="Spin Button"
+                            fill
+                            className="object-cover rounded-full"
+                            unoptimized
+                        />
+                    )}
+                </Button>
+                
+                {/* AUTO SPIN Button */}
+                <Button
+                    onClick={autoplayState.isActive ? onStopAutoplay : onShowAutoplayDialog}
+                    className={`
+                        relative w-12 h-12 rounded-full
+                        flex items-center justify-center p-0
+                        text-white transition-all duration-300 ease-in-out
+                        shadow-xl transform active:scale-95
+                        ${autoplayState.isActive 
+                            ? 'opacity-80' 
+                            : 'hover:scale-105'
+                        }
+                    `}
+                >
+                    <Image
+                        src="/Control_Panel/auto_spin.png"
+                        alt="Auto Spin Button"
+                        fill
+                        className="object-cover rounded-full"
+                        unoptimized
+                    />
+                </Button>
             </div>
-            <div className="col-span-1 flex justify-center">
-                <div className="flex items-center justify-center gap-2 p-1 rounded-md w-full text-center min-h-[48px] info-display-bg">
+
+            {/* Middle row: Win and Bet */}
+            <div className="flex gap-2">
+                <div className="flex-1">
+                    <MobileInfoDisplay label="Win" value={lastWin.toFixed(2)} />
+                </div>
+                {!isFreeSpinsMode && (
+                    <div className="flex-1">
+                        <div className="flex flex-col items-center justify-center p-1 rounded-md text-center min-h-[48px] info-display-bg">
+                            <span className="text-[8px] uppercase font-mono tracking-widest subtle-cyan-text">Bet</span>
+                            <div className="flex items-center gap-0.5 justify-center w-full mt-0.5">
+                                <Button variant="ghost" size="icon" className="h-4 w-4 hover:text-cyan-200 bet-button-icon" onClick={onDecreaseBet} disabled={isSpinning}>
+                                    <Minus className="h-3 w-3" />
+                                </Button>
+                                <span className="text-sm font-bold font-mono px-1 cyan-text-glow">
+                                    R {betAmount}
+                                </span>
+                                <Button variant="ghost" size="icon" className="h-4 w-4 hover:text-cyan-200 bet-button-icon" onClick={onIncreaseBet} disabled={isSpinning}>
+                                    <Plus className="h-3 w-3" />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {isFreeSpinsMode && (
+                    <div className="flex-1">
+                        <MobileInfoDisplay label="Free Spins" value={freeSpinsRemaining} isCurrency={false} />
+                    </div>
+                )}
+            </div>
+
+            {/* Bottom row: Balance and Pay Table/Music */}
+            <div className="flex gap-2">
+                <div className="flex-1">
+                    <MobileInfoDisplay label="Balance" value={balance.toFixed(2)} />
+                </div>
+                <div className="flex-1">
+                    <div className="flex items-center justify-center gap-2 p-1 rounded-md text-center min-h-[48px] info-display-bg">
                     <PayTableDialog />
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={onToggleMute}
-                        className="rounded-full w-6 h-6 p-1 bg-black/30 hover:bg-black/50 transition-colors"
-                        aria-label={isMuted ? "Unmute" : "Mute"}
-                    >
-                        {isMuted ? (
-                            <VolumeX className="w-3 h-3 text-white" />
-                        ) : (
-                            <Volume2 className="w-3 h-3 text-white" />
-                        )}
-                    </Button>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={onToggleMute}
+                            className="rounded-full w-6 h-6 p-1 bg-black/30 hover:bg-black/50 transition-colors"
+                            aria-label={isMuted ? "Unmute" : "Mute"}
+                        >
+                            {isMuted ? (
+                                <VolumeX className="w-3 h-3 text-white" />
+                            ) : (
+                                <Volume2 className="w-3 h-3 text-white" />
+                            )}
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>
