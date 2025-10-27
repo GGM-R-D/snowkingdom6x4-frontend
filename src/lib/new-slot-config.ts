@@ -10,15 +10,15 @@ export const FREE_SPINS_AWARDED = 10;
 
 // Paylines are defined by the row index (0, 1, 2 or 3) for each of the 6 reels.
 export const PAYLINES: number[][] = [
-  [1, 1, 1, 1, 1, 1], // Middle-top row
-  [2, 2, 2, 2, 2, 2], // Middle-bottom row
-  [0, 0, 0, 0, 0, 0], // Top row
-  [3, 3, 3, 3, 3, 3], // Bottom row
-  [0, 1, 2, 2, 1, 0], // V-shape
-  [3, 2, 1, 1, 2, 3], // Inverted V-shape
-  [0, 0, 1, 2, 3, 3], // Diagonal up
-  [3, 3, 2, 1, 0, 0], // Diagonal down
-  [1, 0, 0, 0, 0, 1], // U-shape
+  [0, 0, 0, 0, 0, 0], // Line 1: Top row (was Line 3)
+  [1, 1, 1, 1, 1, 1], // Line 2: Second row (was Line 1)
+  [2, 2, 2, 2, 2, 2], // Line 3: Third row (was Line 2)
+  [3, 3, 3, 3, 3, 3], // Line 4: Bottom row (unchanged)
+  [0, 1, 2, 2, 1, 0], // Line 5: V-shape (unchanged)
+  [3, 2, 1, 1, 2, 3], // Line 6: Inverted V-shape (unchanged)
+  [0, 0, 1, 2, 3, 3], // Line 7: Diagonal up (unchanged)
+  [3, 3, 2, 1, 0, 0], // Line 8: Diagonal down (unchanged)
+  [1, 0, 0, 0, 0, 1], // Line 9: U-shape (unchanged)
 ];
 
 interface WinningLine {

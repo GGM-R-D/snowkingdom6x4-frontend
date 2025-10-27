@@ -39,9 +39,9 @@ const InfoDisplay = ({ label, value, isCurrency = true }: { label: string; value
     // Applied info-display-bg class for the new background, border, and shadows
     <div className="flex flex-col items-center justify-center p-1 rounded-md text-center min-h-[48px] sm:min-h-[60px] md:min-h-[80px] info-display-bg flex-1 min-w-[120px]">
         {/* Applied subtle-cyan-text for the new label styling */}
-        <span className="text-[8px] sm:text-[9px] md:text-[10px] uppercase font-mono tracking-widest subtle-cyan-text">{label}</span>
+        <span className="text-[10px] sm:text-[12px] md:text-[14px] uppercase font-mono tracking-widest subtle-cyan-text">{label}</span>
         {/* Applied cyan-text-glow for the new value styling */}
-        <span className="text-sm sm:text-base md:text-lg font-bold font-mono cyan-text-glow">
+        <span className="text-base sm:text-lg md:text-xl font-bold font-mono cyan-text-glow">
             {isCurrency ? `R ${value}` : value}
         </span>
     </div>
@@ -50,8 +50,8 @@ const InfoDisplay = ({ label, value, isCurrency = true }: { label: string; value
 // Mobile-specific InfoDisplay with full width
 const MobileInfoDisplay = ({ label, value, isCurrency = true }: { label: string; value: number | string; isCurrency?: boolean }) => (
     <div className="flex flex-col items-center justify-center p-1 rounded-md w-full text-center min-h-[48px] info-display-bg">
-        <span className="text-[8px] uppercase font-mono tracking-widest subtle-cyan-text">{label}</span>
-        <span className="text-sm font-bold font-mono cyan-text-glow">
+        <span className="text-[10px] uppercase font-mono tracking-widest subtle-cyan-text">{label}</span>
+        <span className="text-base font-bold font-mono cyan-text-glow">
             {isCurrency ? `R ${value}` : value}
         </span>
     </div>
@@ -108,16 +108,16 @@ export function ControlPanel({
             {/* Bet */}
                 {!isFreeSpinsMode && (
                 <div className="flex flex-col items-center justify-center p-1 rounded-md text-center min-h-[60px] md:min-h-[80px] info-display-bg flex-1 min-w-[120px]">
-                    <span className="text-[8px] sm:text-[9px] md:text-[10px] uppercase font-mono tracking-widest subtle-cyan-text">Bet</span>
+                    <span className="text-[10px] sm:text-[12px] md:text-[14px] uppercase font-mono tracking-widest subtle-cyan-text">Bet</span>
                         <div className="flex items-center gap-0.5 justify-center w-full mt-0.5">
-                        <Button variant="ghost" size="icon" className="h-4 w-4 md:h-5 md:w-5 hover:text-cyan-200 bet-button-icon" onClick={onDecreaseBet} disabled={isSpinning}>
-                            <Minus className="h-3 w-3 md:h-4 md:w-4" />
+                        <Button variant="ghost" size="icon" className="h-6 w-6 md:h-8 md:w-8 hover:text-cyan-200 bet-button-icon" onClick={onDecreaseBet} disabled={isSpinning}>
+                            <Minus className="h-4 w-4 md:h-5 md:w-5" />
                             </Button>
-                        <span className="text-sm md:text-base font-bold font-mono px-1 cyan-text-glow">
+                        <span className="text-base md:text-lg font-bold font-mono px-1 cyan-text-glow">
                                 R {betAmount}
                             </span>
-                        <Button variant="ghost" size="icon" className="h-4 w-4 md:h-5 md:w-5 hover:text-cyan-200 bet-button-icon" onClick={onIncreaseBet} disabled={isSpinning}>
-                            <Plus className="h-3 w-3 md:h-4 md:w-4" />
+                        <Button variant="ghost" size="icon" className="h-6 w-6 md:h-8 md:w-8 hover:text-cyan-200 bet-button-icon" onClick={onIncreaseBet} disabled={isSpinning}>
+                            <Plus className="h-4 w-4 md:h-5 md:w-5" />
                             </Button>
                         </div>
                     </div>

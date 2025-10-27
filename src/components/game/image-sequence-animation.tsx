@@ -99,7 +99,7 @@ export function ImageSequenceAnimation({
     };
     
     const folderName = getFolderName(symbolId);
-    return `/animations/${folderName}/${folderName}_${frameNumber}.png`;
+    return `/animations/${folderName}/${folderName}_${frameNumber}.webp`;
   };
   
   if (!isPlaying || !isAnimating || !isReady) {
