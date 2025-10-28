@@ -12,22 +12,18 @@ export function FreeSpinsOverlay({ count, onClose }: FreeSpinsOverlayProps) {
 
   useEffect(() => {
     const showT = setTimeout(() => setVisible(true), 50);
-    const hideT = setTimeout(() => {
-      setVisible(false);
-      setTimeout(onClose, 400);
-    }, 3000);
     return () => {
       clearTimeout(showT);
-      clearTimeout(hideT);
     };
-  }, [onClose]);
+  }, []);
 
   return (
     <div className={`fixed inset-0 z-50 transition-opacity duration-300 ${visible ? 'opacity-100' : 'opacity-0'} pointer-events-none`}>
       <div className="absolute inset-0 flex items-start justify-center p-4 pt-[15vh] sm:pt-[18vh] md:pt-[20vh]">
         <div className="bg-black/70 p-6 sm:p-8 md:p-10 rounded-2xl shadow-2xl border-2 border-accent max-w-[90%] sm:max-w-md text-center animate-fade-in-scale">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-headline text-accent drop-shadow-lg">Free Spins!</h2>
-          <p className="mt-2 text-lg sm:text-xl text-foreground/90">You won {count} free spins</p>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-headline text-accent drop-shadow-lg">Free Spins Activated!</h2>
+          <p className="mt-2 text-lg sm:text-xl text-foreground/90">You have {count} free spins.</p>
+          <p className="mt-3 text-base sm:text-lg text-accent font-bold">Press SPIN to start Free Spins</p>
         </div>
       </div>
       <style jsx>{`

@@ -152,6 +152,7 @@ export function SlotMachine() {
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   const [freeSpinsActivated, setFreeSpinsActivated] = useState(false);
   const [showFreeSpinsOverlay, setShowFreeSpinsOverlay] = useState<{show: boolean; count: number}>({ show: false, count: 0 });
+  const [hasShownGlowForCurrentFreeSpins, setHasShownGlowForCurrentFreeSpins] = useState(false);
 
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
@@ -352,6 +353,8 @@ export function SlotMachine() {
               setFreeSpinsActivated(true);
               // Hide free spins overlay when free spins actually start
               setShowFreeSpinsOverlay({ show: false, count: 0 });
+              // Mark glow as shown for this free spins session
+              setHasShownGlowForCurrentFreeSpins(true);
             }
 
           // Check balance on frontend for quick response
@@ -364,6 +367,9 @@ export function SlotMachine() {
               return;
           }
 
+          // Hide free spins overlay when spinning starts
+          setShowFreeSpinsOverlay({ show: false, count: 0 });
+          
           stopSpinSound();
           playSpinSound();
 
@@ -502,6 +508,7 @@ export function SlotMachine() {
               if (data.game.results.scatterWin.triggeredFreeSpins) {
                   playFreeSpinsTriggerSound();
                   setShowFreeSpinsOverlay({ show: true, count: FREE_SPINS_AWARDED });
+                  setHasShownGlowForCurrentFreeSpins(false); // Reset glow state for new free spins
               }
 
               // Handle wins (This logic is already in the correct place)
@@ -638,7 +645,13 @@ export function SlotMachine() {
         FROSTY FORTUNES
       </h1>
 
-      <div className="flex flex-col items-center gap-1 p-1 rounded-2xl bg-card/50 border-2 md:border-4 border-primary/50 shadow-2xl w-full max-w-6xl relative mb-1">
+      <div className={`flex flex-col items-center gap-1 p-1 rounded-2xl bg-card/50 border-2 md:border-4 shadow-2xl w-full max-w-6xl relative mb-1 ${
+        isFreeSpinsMode && !hasShownGlowForCurrentFreeSpins
+          ? `free-spins-border border-yellow-400 ${isSpinning ? 'spinning' : ''}` 
+          : isFreeSpinsMode 
+            ? 'border-yellow-400'
+            : 'border-primary/50'
+      }`}>
       <div className="relative w-full flex justify-center">
         <PaylineNumbers 
           winningLines={winningLines} 
