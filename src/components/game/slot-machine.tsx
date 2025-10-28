@@ -155,6 +155,9 @@ export function SlotMachine() {
 
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [isMusicEnabled, setIsMusicEnabled] = useState(true);
+  const [isSfxEnabled, setIsSfxEnabled] = useState(true);
+  const [volume, setVolume] = useState(50);
   const [isAutoSpin, setIsAutoSpin] = useState(false);
   const [isTurboMode, setIsTurboMode] = useState(false);
   const [bouncingReels, setBouncingReels] = useState<boolean[]>(Array(NUM_REELS).fill(false));
@@ -170,13 +173,18 @@ export function SlotMachine() {
   const [showAutoplayDialog, setShowAutoplayDialog] = useState(false);
   const isFreeSpinsMode = useMemo(() => freeSpinsRemaining > 0, [freeSpinsRemaining]);
 
-  const soundConfig = {
-    soundEnabled: !isMuted,
-    volume: 0.3,
-  };
+  const soundConfig = useMemo(() => ({
+    soundEnabled: isSfxEnabled,
+    volume: volume / 100, // Convert 0-100 to 0-1
+  }), [isSfxEnabled, volume]);
+
+  const musicConfig = useMemo(() => ({
+    soundEnabled: isMusicEnabled,
+    volume: volume / 100, // Convert 0-100 to 0-1
+  }), [isMusicEnabled, volume]);
 
   const [playBgMusic, { stop: stopBgMusic }] = useSound(SOUNDS.background, {
-    ...soundConfig,
+    ...musicConfig,
     loop: true
   });
   const [playSpinSound, { stop: stopSpinSound }] = useSound(SOUNDS.spin, {
@@ -189,14 +197,14 @@ export function SlotMachine() {
   const [playFreeSpinsTriggerSound] = useSound(SOUNDS.featureTrigger, soundConfig);
   const [playClickSound] = useSound(SOUNDS.click, soundConfig);
   const [playFreeSpinsMusic, { stop: stopFreeSpinsMusic }] = useSound(SOUNDS.freeSpinsMusic, {
-    ...soundConfig,
+    ...musicConfig,
     loop: true
   });
   
 
  useEffect(() => {
-    // If the game is muted, make sure no music is playing.
-    if (isMuted) {
+    // If music is disabled, stop all music.
+    if (!isMusicEnabled) {
       stopBgMusic();
       stopFreeSpinsMusic();
       return;
@@ -217,10 +225,25 @@ export function SlotMachine() {
       stopBgMusic();
       stopFreeSpinsMusic();
     };
-  }, [isFreeSpinsMode, isMuted, playBgMusic, stopBgMusic, playFreeSpinsMusic, stopFreeSpinsMusic]);
+  }, [isFreeSpinsMode, isMusicEnabled, playBgMusic, stopBgMusic, playFreeSpinsMusic, stopFreeSpinsMusic]);
 
   const toggleMute = () => {
-    setIsMuted(!isMuted);
+    const newMutedState = !isMuted;
+    setIsMuted(newMutedState);
+    setIsMusicEnabled(!newMutedState);
+    setIsSfxEnabled(!newMutedState);
+  };
+
+  const toggleMusic = () => {
+    setIsMusicEnabled(!isMusicEnabled);
+  };
+
+  const toggleSfx = () => {
+    setIsSfxEnabled(!isSfxEnabled);
+  };
+
+  const handleVolumeChange = (newVolume: number) => {
+    setVolume(newVolume);
   };
 
   const isSpinning = useMemo(() => spinningReels.some(s => s), [spinningReels]);
@@ -666,8 +689,12 @@ export function SlotMachine() {
       onToggleAutoSpin={handleToggleAutoSpin}
       isTurboMode={isTurboMode}
       onToggleTurbo={handleToggleTurbo}
-      isMuted={isMuted}
-      onToggleMute={toggleMute}
+      isMusicEnabled={isMusicEnabled}
+      onToggleMusic={toggleMusic}
+      isSfxEnabled={isSfxEnabled}
+      onToggleSfx={toggleSfx}
+      volume={volume}
+      onVolumeChange={handleVolumeChange}
       autoplayState={autoplayState}
       onStartAutoplay={startAutoplay}
       onStopAutoplay={stopAutoplay}

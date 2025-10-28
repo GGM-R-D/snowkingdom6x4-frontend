@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PayTableDialog } from "./pay-table-dialog";
 import { InfoDialog } from "./info-dialog";
-import { Plus, Minus, RotateCw, BookOpen, Volume2, VolumeX } from "lucide-react";
+import { AudioSettingsDialog } from "./audio-settings-dialog";
+import { Plus, Minus, RotateCw, BookOpen, Volume2, VolumeX, Settings } from "lucide-react";
 import { useMemo } from 'react';
 import {cn} from '@/lib/utils';
 import Image from 'next/image';
@@ -22,8 +23,12 @@ interface ControlPanelProps {
   onToggleAutoSpin: () => void;
   isTurboMode: boolean;
   onToggleTurbo: () => void;
-  isMuted: boolean;
-  onToggleMute: () => void;
+  isMusicEnabled: boolean;
+  onToggleMusic: () => void;
+  isSfxEnabled: boolean;
+  onToggleSfx: () => void;
+  volume: number;
+  onVolumeChange: (volume: number) => void;
   autoplayState: {
     isActive: boolean;
     settings: any;
@@ -73,8 +78,12 @@ export function ControlPanel({
   onToggleAutoSpin,
   isTurboMode,
   onToggleTurbo,
-  isMuted,
-  onToggleMute,
+  isMusicEnabled,
+  onToggleMusic,
+  isSfxEnabled,
+  onToggleSfx,
+  volume,
+  onVolumeChange,
   autoplayState,
   onStartAutoplay,
   onStopAutoplay,
@@ -204,23 +213,18 @@ export function ControlPanel({
             {/* Win */}
                 <InfoDisplay label="Win" value={lastWin.toFixed(2)} />
             
-            {/* Pay Table, Info, and Music */}
+            {/* Pay Table, Info, and Audio Settings */}
             <div className="flex items-center justify-center gap-2 p-1 rounded-md text-center min-h-[60px] md:min-h-[80px] info-display-bg flex-1 min-w-[120px]">
                     <PayTableDialog betAmount={betAmount} />
                     <InfoDialog />
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onToggleMute}
-                    className="rounded-full w-8 h-8 md:w-10 md:h-10 p-1 bg-black/30 hover:bg-black/50 transition-colors"
-                    aria-label={isMuted ? "Unmute" : "Mute"}
-                >
-                    {isMuted ? (
-                        <VolumeX className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                    ) : (
-                        <Volume2 className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                    )}
-                </Button>
+                    <AudioSettingsDialog 
+                      isMusicEnabled={isMusicEnabled}
+                      onToggleMusic={onToggleMusic}
+                      isSfxEnabled={isSfxEnabled}
+                      onToggleSfx={onToggleSfx}
+                      volume={volume}
+                      onVolumeChange={onVolumeChange}
+                    />
             </div>
         </div>
 
@@ -342,19 +346,14 @@ export function ControlPanel({
                     <div className="flex items-center justify-center gap-2 p-1 rounded-md text-center min-h-[48px] info-display-bg">
                     <PayTableDialog betAmount={betAmount} />
                     <InfoDialog />
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={onToggleMute}
-                            className="rounded-full w-6 h-6 p-1 bg-black/30 hover:bg-black/50 transition-colors"
-                            aria-label={isMuted ? "Unmute" : "Mute"}
-                        >
-                            {isMuted ? (
-                                <VolumeX className="w-3 h-3 text-white" />
-                            ) : (
-                                <Volume2 className="w-3 h-3 text-white" />
-                            )}
-                        </Button>
+                    <AudioSettingsDialog 
+                      isMusicEnabled={isMusicEnabled}
+                      onToggleMusic={onToggleMusic}
+                      isSfxEnabled={isSfxEnabled}
+                      onToggleSfx={onToggleSfx}
+                      volume={volume}
+                      onVolumeChange={onVolumeChange}
+                    />
                     </div>
                 </div>
             </div>
