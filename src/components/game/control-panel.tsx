@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PayTableDialog } from "./pay-table-dialog";
+import { InfoDialog } from "./info-dialog";
 import { Plus, Minus, RotateCw, BookOpen, Volume2, VolumeX } from "lucide-react";
 import { useMemo } from 'react';
 import {cn} from '@/lib/utils';
@@ -203,9 +204,10 @@ export function ControlPanel({
             {/* Win */}
                 <InfoDisplay label="Win" value={lastWin.toFixed(2)} />
             
-            {/* Pay Table and Music */}
+            {/* Pay Table, Info, and Music */}
             <div className="flex items-center justify-center gap-2 p-1 rounded-md text-center min-h-[60px] md:min-h-[80px] info-display-bg flex-1 min-w-[120px]">
-                    <PayTableDialog />
+                    <PayTableDialog betAmount={betAmount} />
+                    <InfoDialog />
                 <Button
                     variant="ghost"
                     size="icon"
@@ -338,7 +340,8 @@ export function ControlPanel({
                 </div>
                 <div className="flex-1">
                     <div className="flex items-center justify-center gap-2 p-1 rounded-md text-center min-h-[48px] info-display-bg">
-                    <PayTableDialog />
+                    <PayTableDialog betAmount={betAmount} />
+                    <InfoDialog />
                         <Button
                             variant="ghost"
                             size="icon"
