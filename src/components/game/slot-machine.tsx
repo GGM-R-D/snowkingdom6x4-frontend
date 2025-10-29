@@ -15,6 +15,7 @@ import useSound from 'use-sound';
 import { SOUNDS } from '@/lib/sounds';
 import { cn } from '@/lib/utils';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
+import { rgsApi, type GameStartResponse, type GamePlayResponse } from '@/lib/rgs-api';
 
 // Types for API communication
 type SymbolId = 
@@ -149,9 +150,9 @@ export function SlotMachine() {
   const [winningLines, setWinningLines] = useState<WinningLine[]>([]);
   const [winningFeedback, setWinningFeedback] = useState<WinningFeedbackEnhancementOutput | null>(null);
   const { toast } = useToast();
-  const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  const [sessionId, setSessionId] = useState<string>('');
   const [freeSpinsActivated, setFreeSpinsActivated] = useState(false);
-  const [showFreeSpinsOverlay, setShowFreeSpinsOverlay] = useState<{show: boolean; count: number}>({ show: false, count: 0 });
+  const [showFreeSpinsOverlay, setShowFreeSpinsOverlay] = useState<{show: boolean; count: number; winAmount?: number; winningSymbols?: string[]}>({ show: false, count: 0 });
   const [hasShownGlowForCurrentFreeSpins, setHasShownGlowForCurrentFreeSpins] = useState(false);
 
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
@@ -173,6 +174,34 @@ export function SlotMachine() {
   });
   const [showAutoplayDialog, setShowAutoplayDialog] = useState(false);
   const isFreeSpinsMode = useMemo(() => freeSpinsRemaining > 0, [freeSpinsRemaining]);
+
+  // Initialize game session
+  useEffect(() => {
+    const initializeGame = async () => {
+      try {
+        const startResponse = await rgsApi.startGame({
+          languageId: 'en',
+          client: 'desktop',
+          funMode: 1, // Demo mode
+        });
+        
+        if (startResponse.statusCode === 6000) {
+          setSessionId(startResponse.player.sessionId);
+          setBalance(startResponse.player.balance);
+          setFreeSpinsRemaining(startResponse.game.freeSpins.left);
+        }
+      } catch (error) {
+        console.error('Failed to initialize game:', error);
+        toast({
+          title: "Connection Error",
+          description: "Failed to connect to game server. Please refresh the page.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    initializeGame();
+  }, [toast]);
 
   const soundConfig = useMemo(() => ({
     soundEnabled: isSfxEnabled,
@@ -398,27 +427,17 @@ export function SlotMachine() {
            const spinStartTime = Date.now();
 
           try {
-              // Call backend API
-              const response = await fetch('http://localhost:5047/play', {
-                  method: 'POST',
-                  headers: {
-                      'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                      sessionId: sessionId,
-                      betAmount: betAmount,
-                  }),
+              // Call RGS API
+              const data: GamePlayResponse = await rgsApi.playGame({
+                  sessionId: sessionId,
+                  bets: [{ amount: betAmount }],
+                  bet: betAmount,
+                  mode: isFreeSpinsMode ? 1 : 0, // 1 for free spins, 0 for normal play
               });
 
-              if (!response.ok) {
-                  const errorData = await response.json().catch(() => ({}));
-                  console.error('API Error Response:', errorData);
-                  throw new Error(errorData.Error || `HTTP error! status: ${response.status}`);
+              if (data.statusCode !== 6000) {
+                  throw new Error(data.message || 'Game play failed');
               }
-
-              const data: PlayResponse = await response.json();
-              
-              
 
               const newGrid = data.game.results.grid;
               const newWinningLines = data.game.results.winningLines;
@@ -496,37 +515,47 @@ export function SlotMachine() {
 
               setWinningLines(newWinningLines);
               
-                // Update state from backend response
+                // Update state from RGS response
               setBalance(data.player.balance);
-              setFreeSpinsRemaining(data.player.freeSpinsRemaining);
+              setFreeSpinsRemaining(data.freeSpins.left);
               // Don't update lastWin yet - wait for counter animation to finish
-              // setLastWin(data.player.lastWin);
+              // setLastWin(data.player.win);
 
               await new Promise(resolve => setTimeout(resolve, 100));
 
               // Handle free spins trigger
               if (data.game.results.scatterWin.triggeredFreeSpins) {
                   playFreeSpinsTriggerSound();
-                  setShowFreeSpinsOverlay({ show: true, count: FREE_SPINS_AWARDED });
-                  setHasShownGlowForCurrentFreeSpins(false); // Reset glow state for new free spins
-              }
-
-              // Handle wins (This logic is already in the correct place)
-              if (data.player.lastWin > 0) {
-                  if (data.player.lastWin > betAmount * 5) {
-                      playBigWinSound();
-                  } else {
-                      playWinSound();
-                  }
-
-                  // Get winning feedback for win animation
-                  const winningSymbols = [...new Set(newWinningLines.map(l => l.symbol))];
-                  const feedback = await getWinningFeedback({
-                      winAmount: data.player.lastWin,
-                      winningSymbols: winningSymbols,
-                      betAmount: betAmount
+                  
+                  // Get winning symbols for the combined message
+                  const winningSymbols = [...new Set(newWinningLines.map((l: WinningLine) => l.symbol))] as string[];
+                  
+                  // Show combined free spins + win message
+                  setShowFreeSpinsOverlay({ 
+                    show: true, 
+                    count: FREE_SPINS_AWARDED,
+                    winAmount: data.player.win,
+                    winningSymbols: winningSymbols
                   });
-                  setWinningFeedback(feedback);
+                  setHasShownGlowForCurrentFreeSpins(false); // Reset glow state for new free spins
+              } else {
+                  // Handle wins only when free spins are NOT triggered
+                  if (data.player.win > 0) {
+                      if (data.player.win > betAmount * 5) {
+                          playBigWinSound();
+                      } else {
+                          playWinSound();
+                      }
+
+                      // Get winning feedback for win animation
+                      const winningSymbols = [...new Set(newWinningLines.map((l: WinningLine) => l.symbol))] as string[];
+                      const feedback = await getWinningFeedback({
+                          winAmount: data.player.win,
+                          winningSymbols: winningSymbols,
+                          betAmount: betAmount
+                      });
+                      setWinningFeedback(feedback);
+                  }
               }
 
               // Return spin result for autoplay logic
@@ -718,6 +747,8 @@ export function SlotMachine() {
       <FreeSpinsOverlay
         count={showFreeSpinsOverlay.count}
         onClose={() => setShowFreeSpinsOverlay({ show: false, count: 0 })}
+        winAmount={showFreeSpinsOverlay.winAmount}
+        winningSymbols={showFreeSpinsOverlay.winningSymbols}
       />
     )}
 
