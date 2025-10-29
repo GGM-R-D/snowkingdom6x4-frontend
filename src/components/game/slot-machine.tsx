@@ -152,8 +152,9 @@ export function SlotMachine() {
   const { toast } = useToast();
   const [sessionId, setSessionId] = useState<string>('');
   const [freeSpinsActivated, setFreeSpinsActivated] = useState(false);
-  const [showFreeSpinsOverlay, setShowFreeSpinsOverlay] = useState<{show: boolean; count: number; winAmount?: number; winningSymbols?: string[]}>({ show: false, count: 0 });
+  const [showFreeSpinsOverlay, setShowFreeSpinsOverlay] = useState<{show: boolean; count: number; winAmount?: number; winningSymbols?: string[]; isComplete?: boolean; totalWin?: number}>({ show: false, count: 0 });
   const [hasShownGlowForCurrentFreeSpins, setHasShownGlowForCurrentFreeSpins] = useState(false);
+  const [previousFreeSpinsRemaining, setPreviousFreeSpinsRemaining] = useState(0);
 
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
@@ -189,6 +190,7 @@ export function SlotMachine() {
           setSessionId(startResponse.player.sessionId);
           setBalance(startResponse.player.balance);
           setFreeSpinsRemaining(startResponse.game.freeSpins.left);
+          setPreviousFreeSpinsRemaining(startResponse.game.freeSpins.left);
         }
       } catch (error) {
         console.error('Failed to initialize game:', error);
@@ -517,11 +519,30 @@ export function SlotMachine() {
               
                 // Update state from RGS response
               setBalance(data.player.balance);
+              
+              // Check if free spins just ended using backend data
+              // All logic comes from backend: data.freeSpins.left and data.freeSpins.totalWin
+              // Frontend only detects the transition from having free spins to none
+              const freeSpinsJustEnded = freeSpinsRemaining > 0 && data.freeSpins.left === 0;
+              
+              setPreviousFreeSpinsRemaining(freeSpinsRemaining);
               setFreeSpinsRemaining(data.freeSpins.left);
+              
               // Don't update lastWin yet - wait for counter animation to finish
               // setLastWin(data.player.win);
 
               await new Promise(resolve => setTimeout(resolve, 100));
+              
+              // Handle free spins completion
+              if (freeSpinsJustEnded) {
+                  setShowFreeSpinsOverlay({ 
+                    show: true, 
+                    count: 0,
+                    isComplete: true,
+                    totalWin: data.freeSpins.totalWin || 0
+                  });
+                  return data.game.results; // Return early to prevent other overlays
+              }
 
               // Handle free spins trigger
               if (data.game.results.scatterWin.triggeredFreeSpins) {
@@ -605,14 +626,14 @@ export function SlotMachine() {
         
        useEffect(() => {
      // Only run auto-spins if the feature has been activated by the user
-     // Also check that win animation is not playing
-     if (freeSpinsRemaining > 0 && freeSpinsActivated && !isSpinning && !winningFeedback) {
+     // Also check that win animation is not playing and overlay is not showing
+     if (freeSpinsRemaining > 0 && freeSpinsActivated && !isSpinning && !winningFeedback && !showFreeSpinsOverlay.show) {
        const timer = setTimeout(() => {
          spin();
        }, 2000); // 2-second delay between auto-spins
        return () => clearTimeout(timer);
      }
-   }, [freeSpinsRemaining, freeSpinsActivated, isSpinning, winningFeedback, spin]);
+   }, [freeSpinsRemaining, freeSpinsActivated, isSpinning, winningFeedback, showFreeSpinsOverlay.show, spin]);
 
   // Auto spin logic - similar to free spins but for regular gameplay
   useEffect(() => {
@@ -749,6 +770,8 @@ export function SlotMachine() {
         onClose={() => setShowFreeSpinsOverlay({ show: false, count: 0 })}
         winAmount={showFreeSpinsOverlay.winAmount}
         winningSymbols={showFreeSpinsOverlay.winningSymbols}
+        isComplete={showFreeSpinsOverlay.isComplete}
+        totalWin={showFreeSpinsOverlay.totalWin}
       />
     )}
 
